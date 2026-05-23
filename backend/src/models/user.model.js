@@ -1,7 +1,15 @@
+import { randomUUID } from 'node:crypto'
 import mongoose from 'mongoose'
 
 const userSchema = new mongoose.Schema(
   {
+    user_id: {
+      type: String,
+      default: randomUUID,
+      immutable: true,
+      unique: true,
+      index: true,
+    },
     name: {
       type: String,
       required: [true, 'Name is required'],
@@ -16,9 +24,26 @@ const userSchema = new mongoose.Schema(
       unique: true,
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Enter a valid email address'],
     },
+    passwordHash: {
+      type: String,
+      required: [true, 'Password is required'],
+      select: false,
+    },
   },
   {
-    timestamps: true,
+    collection: 'users',
+    timestamps: {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+    },
+    toJSON: {
+      transform: (_document, returnedObject) => {
+        delete returnedObject._id
+        delete returnedObject.passwordHash
+        delete returnedObject.__v
+        return returnedObject
+      },
+    },
   },
 )
 

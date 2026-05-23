@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { DividerTicks, HeroSection, NextSteps } from './components/index.js'
+import { SignupPage } from './components/index.js'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [apiStatus, setApiStatus] = useState('Checking API...')
+  const [apiStatus, setApiStatus] = useState('Connecting to API...')
 
   useEffect(() => {
     let isMounted = true
@@ -19,7 +18,7 @@ function App() {
       })
       .then((data) => {
         if (isMounted) {
-          setApiStatus(`API: ${data.status}`)
+          setApiStatus(`API connected: ${data.status}`)
         }
       })
       .catch(() => {
@@ -34,17 +33,7 @@ function App() {
   }, [])
 
   return (
-    <>
-      <HeroSection
-        apiStatus={apiStatus}
-        count={count}
-        onIncrement={() => setCount((currentCount) => currentCount + 1)}
-      />
-      <DividerTicks />
-      <NextSteps />
-      <DividerTicks />
-      <section id="spacer"></section>
-    </>
+    <SignupPage apiStatus={apiStatus} />
   )
 }
 

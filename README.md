@@ -11,8 +11,9 @@ This project is split into a Vite React frontend and an Express backend.
 
 Start the API:
 
-Set `MONGODB_URI` in `backend/.env` to your MongoDB connection string before
-starting the API.
+Set `MONGODB_URI` and `MONGODB_DB_NAME` in `backend/.env` before starting the
+API. At startup the backend ensures the `users`, `roles`, and
+`user_role_mappers` collections and their indexes exist.
 
 ```bash
 cd backend
@@ -34,9 +35,12 @@ During development, Vite forwards requests from `/api` to the backend at
 
 ## API
 
+- `GET /api/docs` serves the interactive Swagger UI documentation.
+- `GET /api/docs.json` returns the OpenAPI specification.
 - `GET /api/health` returns the backend service status.
+- `POST /api/auth/signup` creates an account with `name`, `email`, and a hashed `password`.
 - `GET /api/users` lists users.
-- `POST /api/users` creates a user with `name` and `email`.
-- `GET /api/users/:id` retrieves one user.
-- `PATCH /api/users/:id` updates `name` and/or `email`.
+- `POST /api/users` creates a user with `name`, `email`, and a hashed `password`.
+- `GET /api/users/:id` retrieves one user by `user_id`.
+- `PATCH /api/users/:id` updates `name`, `email`, and/or `password`.
 - `DELETE /api/users/:id` deletes a user.
