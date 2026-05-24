@@ -66,6 +66,18 @@ const swaggerSpec = swaggerJsdoc({
             },
           },
         },
+        LoginInput: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            email: { type: 'string', format: 'email', example: 'samya@example.com' },
+            password: {
+              type: 'string',
+              format: 'password',
+              writeOnly: true,
+            },
+          },
+        },
         Error: {
           type: 'object',
           properties: {

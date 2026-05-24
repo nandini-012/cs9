@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { publicAxios } from '../../api/axios.js'
 
 const initialForm = {
   email: '',
@@ -31,21 +32,10 @@ function LoginPage({ apiStatus }) {
     })
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-        }),
+      const { data } = await publicAxios.post('/auth/login', {
+        email: form.email,
+        password: form.password,
       })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed. Please check your credentials and try again.')
-      }
 
       setRequestState({
         status: 'success',
@@ -55,7 +45,9 @@ function LoginPage({ apiStatus }) {
     } catch (error) {
       setRequestState({
         status: 'error',
-        message: error.message || 'Login failed. Please check your credentials and try again.',
+        message:
+          error.response?.data?.message ||
+          'Login failed. Please check your credentials and try again.',
       })
     }
   }

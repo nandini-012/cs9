@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { publicAxios } from '../../api/axios.js'
 
 const initialForm = {
   name: '',
@@ -40,22 +41,11 @@ function SignupPage({ apiStatus }) {
     })
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-        }),
+      const { data } = await publicAxios.post('/auth/signup', {
+        name: form.name,
+        email: form.email,
+        password: form.password,
       })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Unable to create your account.')
-      }
 
       setRequestState({
         status: 'success',
@@ -65,7 +55,8 @@ function SignupPage({ apiStatus }) {
     } catch (error) {
       setRequestState({
         status: 'error',
-        message: error.message || 'Unable to create your account.',
+        message:
+          error.response?.data?.message || 'Unable to create your account.',
       })
     }
   }
