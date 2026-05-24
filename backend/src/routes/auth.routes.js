@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createUser } from '../controllers/user.controller.js'
+import { createUser,loginUser } from '../controllers/user.controller.js'
 
 const router = Router()
 
@@ -32,5 +32,5 @@ const router = Router()
  *         description: Email is already registered.
  */
 router.post('/signup', createUser)
-
+router.post('/login', loginUser)
 export default router

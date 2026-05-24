@@ -39,6 +39,29 @@ export async function createUser(req, res, next) {
   }
 }
 
+export async function loginUser(req, res, next) {
+  try{
+    const user = await User.findOne({
+      email: req.body.email,
+    })
+    if(!user){
+      throw createHttpError(401,
+       'Invalid email or password',
+    )}
+    const isPasswordMatch = await bcrypt.compare(req.body.password, user.passwordHash)
+    if(!isPasswordMatch){
+      throw createHttpError(401,
+        'Invalid email or password',
+     )}
+
+    res.status(200).json(user)
+
+  }catch (error) {
+    next(error)
+  } 
+}
+
+
 export async function getUsers(_req, res, next) {
   try {
     const users = await User.find().sort({ created_at: -1 })
