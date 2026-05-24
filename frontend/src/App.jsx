@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { SignupPage } from './components/index.js'
+import { SignupPage, LoginPage } from './components/index.js'
 import './App.css'
 
 function App() {
@@ -33,7 +33,7 @@ function App() {
   }, [])
 
   return (
-    <SignupPage apiStatus={apiStatus} />
+    <LoginPage apiStatus={apiStatus} />
   )
 }
 
