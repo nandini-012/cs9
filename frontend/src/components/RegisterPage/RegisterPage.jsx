@@ -1,13 +1,17 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { getRoleRedirect, useAuth } from "../../context/AuthContext";
-import "./LoginPage.css";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import "../LoginPage/LoginPage.css";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login } = useAuth();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const { register } = useAuth();
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "USER",
+  });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,11 +28,10 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      const user = await login(form);
-      const redirectedFrom = location.state?.from?.pathname;
-      navigate(redirectedFrom || getRoleRedirect(user?.role), { replace: true });
+      await register(form);
+      navigate("/login", { replace: true });
     } catch (apiError) {
-      setError(apiError.message || "Login failed");
+      setError(apiError.message || "Registration failed");
     } finally {
       setSubmitting(false);
     }
@@ -37,9 +40,14 @@ export default function LoginPage() {
   return (
     <main className="login-page">
       <form className="login-card" onSubmit={handleSubmit}>
-        <h1>HelpDesk</h1>
+        <h1>Create account</h1>
 
         {error ? <p className="login-error">{error}</p> : null}
+
+        <label>
+          Name
+          <input name="name" onChange={handleChange} value={form.name} />
+        </label>
 
         <label>
           Email
@@ -56,7 +64,7 @@ export default function LoginPage() {
         <label>
           Password
           <input
-            autoComplete="current-password"
+            autoComplete="new-password"
             name="password"
             onChange={handleChange}
             required
@@ -65,8 +73,17 @@ export default function LoginPage() {
           />
         </label>
 
+        <label>
+          Role
+          <select name="role" onChange={handleChange} value={form.role}>
+            <option value="USER">User</option>
+            <option value="RESOLVER">Resolver</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </label>
+
         <button disabled={submitting} type="submit">
-          {submitting ? "Signing in..." : "Sign in"}
+          {submitting ? "Creating..." : "Create account"}
         </button>
       </form>
     </main>

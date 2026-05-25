@@ -43,7 +43,9 @@ export async function loginUser(req, res, next) {
   try{
     const user = await User.findOne({
       email: req.body.email,
-    })
+    }).select('+passwordHash')
+  
+
     if(!user){
       throw createHttpError(401,
        'Invalid email or password',

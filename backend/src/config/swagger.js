@@ -76,9 +76,10 @@ const swaggerSpec = swaggerJsdoc({
     },
   },
   apis: [
-    join(configDirectory, '../app.js'),
-    join(configDirectory, '../routes/*.js'),
-  ],
+  './src/routes/*.js',
+  './src/controllers/*.js',
+  './src/**/*.js'
+]
 })
 
 export default swaggerSpec

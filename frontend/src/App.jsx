@@ -38,3 +38,5 @@ function App() {
 }
 
 export default App
+import ProtectedRoute from "./components/ProtectedRoute";
+import Unauthorized from "./components/Unauthorized";
