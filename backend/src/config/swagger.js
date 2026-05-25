@@ -66,6 +66,18 @@ const swaggerSpec = swaggerJsdoc({
             },
           },
         },
+        LoginInput: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            email: { type: 'string', format: 'email', example: 'samya@example.com' },
+            password: {
+              type: 'string',
+              format: 'password',
+              writeOnly: true,
+            },
+          },
+        },
         Error: {
           type: 'object',
           properties: {
@@ -76,9 +88,10 @@ const swaggerSpec = swaggerJsdoc({
     },
   },
   apis: [
-    join(configDirectory, '../app.js'),
-    join(configDirectory, '../routes/*.js'),
-  ],
+  './src/routes/*.js',
+  './src/controllers/*.js',
+  './src/**/*.js'
+]
 })
 
 export default swaggerSpec

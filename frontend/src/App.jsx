@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { SignupPage, LoginPage } from './components/index.js'
+import { publicAxios } from './api/axios.js'
+import { LoginPage } from './components/index.js'
 import './App.css'
 
 function App() {
@@ -8,15 +9,9 @@ function App() {
   useEffect(() => {
     let isMounted = true
 
-    fetch('/api/health')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('API request failed')
-        }
-
-        return response.json()
-      })
-      .then((data) => {
+    publicAxios
+      .get('/health')
+      .then(({ data }) => {
         if (isMounted) {
           setApiStatus(`API connected: ${data.status}`)
         }
@@ -38,3 +33,5 @@ function App() {
 }
 
 export default App
+import ProtectedRoute from "./components/ProtectedRoute";
+import Unauthorized from "./components/Unauthorized";

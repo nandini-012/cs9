@@ -40,25 +40,44 @@ export async function createUser(req, res, next) {
 }
 
 export async function loginUser(req, res, next) {
-  try{
+  try {
+    const email =
+      typeof req.body.email === 'string'
+        ? req.body.email.trim().toLowerCase()
+        : ''
+
+    const password =
+      typeof req.body.password === 'string'
+        ? req.body.password
+        : ''
+
     const user = await User.findOne({
-      email: req.body.email,
-    })
-    if(!user){
-      throw createHttpError(401,
-       'Invalid email or password',
-    )}
-    const isPasswordMatch = await bcrypt.compare(req.body.password, user.passwordHash)
-    if(!isPasswordMatch){
-      throw createHttpError(401,
+      email,
+    }).select('+passwordHash')
+
+    if (!user || !password) {
+      throw createHttpError(
+        401,
         'Invalid email or password',
-     )}
+      )
+    }
+
+    const isPasswordMatch = await bcrypt.compare(
+      password,
+      user.passwordHash,
+    )
+
+    if (!isPasswordMatch) {
+      throw createHttpError(
+        401,
+        'Invalid email or password',
+      )
+    }
 
     res.status(200).json(user)
-
-  }catch (error) {
+  } catch (error) {
     next(error)
-  } 
+  }
 }
 
 

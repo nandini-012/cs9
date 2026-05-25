@@ -1,34 +1,34 @@
-import mongoose from 'mongoose'
-import Role from '../models/role.model.js'
-import UserRoleMapper from '../models/user-role-mapper.model.js'
-import User from '../models/user.model.js'
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
 
-const applicationModels = [User, Role, UserRoleMapper]
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-export async function initializeCollections() {
-  await Promise.all(applicationModels.map((model) => model.createCollection()))
-  await Promise.all(applicationModels.map((model) => model.createIndexes()))
-}
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-export async function connectDB() {
-  const mongoUri = process.env.MONGODB_URI
-  const databaseName = process.env.MONGODB_DB_NAME
+const getMongoUri = () =>
+  process.env.MONGODB_URI || process.env.MONGO_URI || process.env.DATABASE_URL;
+
+const connectDB = async () => {
+  const mongoUri = getMongoUri();
 
   if (!mongoUri) {
-    throw new Error('MONGODB_URI is not defined')
+    throw new Error(
+      "MongoDB connection string is missing. Set MONGODB_URI in backend/.env."
+    );
   }
 
-  const connection = await mongoose.connect(
-    mongoUri,
-    databaseName ? { dbName: databaseName } : undefined,
-  )
+  try {
+    const conn = await mongoose.connect(mongoUri, {
+      dbName: process.env.MONGODB_DB_NAME,
+    });
+    console.log(`MongoDB connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`MongoDB connection failed: ${error.message}`);
+    process.exit(1);
+  }
+};
 
-  await initializeCollections()
-
-  console.log(
-    `MongoDB connected: ${connection.connection.host}/${connection.connection.name}`,
-  )
-  console.log('MongoDB collections ready: users, roles, user_role_mappers')
-
-  return connection
-}
+export default connectDB;

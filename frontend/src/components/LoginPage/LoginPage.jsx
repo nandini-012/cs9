@@ -1,136 +1,87 @@
-import { useState } from 'react'
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getRoleRedirect, useAuth } from "../../context/AuthContext";
+import "./LoginPage.css";
 
-const initialForm = {
-  email: '',
-  password: '',
-}
+export default function LoginPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-function LoginPage({ apiStatus }) {
-  const [form, setForm] = useState(initialForm)
-  const [requestState, setRequestState] = useState({
-    status: 'idle',
-    message: '',
-  })
-
-  function handleChange(event) {
-    const { name, value } = event.target
-
+  const handleChange = (event) => {
     setForm((currentForm) => ({
       ...currentForm,
-      [name]: value,
-    }))
+      [event.target.name]: event.target.value,
+    }));
+  };
+const handleSubmit = async (event) => {
+  event.preventDefault();
+
+  setError("");
+  setSubmitting(true);
+
+  try {
+    const user = await login(form);
+
+    const redirectedFrom =
+      location.state?.from?.pathname;
+
+    navigate(
+      redirectedFrom ||
+      getRoleRedirect(user?.role),
+      { replace: true }
+    );
+
+  } catch (apiError) {
+    setError(
+      apiError.message ||
+      "Login failed"
+    );
+
+  } finally {
+    setSubmitting(false);
   }
+};
 
-  async function handleSubmit(event) {
-    event.preventDefault()
-
-
-    setRequestState({
-      status: 'loading',
-      message: '',
-    })
-
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-        }),
-      })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed. Please check your credentials and try again.')
-      }
-
-      setRequestState({
-        status: 'success',
-        message: `Welcome back, ${data.name}. Login successful!`,
-      })
-      setForm(initialForm)
-    } catch (error) {
-      setRequestState({
-        status: 'error',
-        message: error.message || 'Login failed. Please check your credentials and try again.',
-      })
-    }
-  }
-
-  const isSubmitting = requestState.status === 'loading'
 
   return (
     <main className="login-page">
-      <section className="signup-intro">
-        <p className="eyebrow">FAQ Baseline</p>
-        <h1>Welcome back!</h1>
-        <p className="signup-description">
-         Sign in to access your workspace, 
-         manage reliable answers, 
-         collaborate with your team, 
-         and continue building a trusted knowledge base.
-        </p>
-        <p className="api-pill" aria-live="polite">
-          {apiStatus}
-        </p>
-      </section>
+      <form className="login-card" onSubmit={handleSubmit}>
+        <h1>HelpDesk</h1>
 
-      <section className="signup-card" aria-label="Login">
-        <div className="signup-card-header">
-          <p className="eyebrow">Login</p>
-          <h2>Login</h2>
-          <p>Use your existing account to continue.</p>
-        </div>
+        {error ? <p className="login-error">{error}</p> : null}
 
-        <form className="signup-form" onSubmit={handleSubmit}>
-         
-          <label>
-            Email
-            <input
-              autoComplete="email"
-              name="email"
-              onChange={handleChange}
-              placeholder="you@company.com"
-              required
-              type="email"
-              value={form.email}
-            />
-          </label>
+        <label>
+          Email
+          <input
+            autoComplete="email"
+            name="email"
+            onChange={handleChange}
+            required
+            type="email"
+            value={form.email}
+          />
+        </label>
 
-          <label>
-            Password
-            <input
-              autoComplete="current-password"
-              minLength={8}
-              name="password"
-              onChange={handleChange}
-              placeholder="Enter your password"
-              required
-              type="password"
-              value={form.password}
-            />
-          </label>
+        <label>
+          Password
+          <input
+            autoComplete="current-password"
+            name="password"
+            onChange={handleChange}
+            required
+            type="password"
+            value={form.password}
+          />
+        </label>
 
-
-          {requestState.message && (
-            <p
-              className={`form-message ${requestState.status}`}
-              role={requestState.status === 'error' ? 'alert' : 'status'}
-            >
-              {requestState.message}
-            </p>
-          )}
-
-          <button className="signup-submit" disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-      </section>
+        <button disabled={submitting} type="submit">
+          {submitting ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
     </main>
-  )
+  );
 }
-
-export default LoginPage
