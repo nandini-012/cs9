@@ -17,22 +17,35 @@ export default function LoginPage() {
       [event.target.name]: event.target.value,
     }));
   };
+const handleSubmit = async (event) => {
+  event.preventDefault();
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError("");
-    setSubmitting(true);
+  setError("");
+  setSubmitting(true);
 
-    try {
-      const user = await login(form);
-      const redirectedFrom = location.state?.from?.pathname;
-      navigate(redirectedFrom || getRoleRedirect(user?.role), { replace: true });
-    } catch (apiError) {
-      setError(apiError.message || "Login failed");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  try {
+    const user = await login(form);
+
+    const redirectedFrom =
+      location.state?.from?.pathname;
+
+    navigate(
+      redirectedFrom ||
+      getRoleRedirect(user?.role),
+      { replace: true }
+    );
+
+  } catch (apiError) {
+    setError(
+      apiError.message ||
+      "Login failed"
+    );
+
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   return (
     <main className="login-page">

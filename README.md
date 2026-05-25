@@ -39,6 +39,7 @@ During development, Vite forwards requests from `/api` to the backend at
 - `GET /api/docs.json` returns the OpenAPI specification.
 - `GET /api/health` returns the backend service status.
 - `POST /api/auth/signup` creates an account with `name`, `email`, and a hashed `password`.
+- `POST /api/auth/login` verifies an account email and password.
 - `GET /api/users` lists users.
 - `POST /api/users` creates a user with `name`, `email`, and a hashed `password`.
 - `GET /api/users/:id` retrieves one user by `user_id`.

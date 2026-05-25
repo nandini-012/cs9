@@ -32,8 +32,34 @@ const router = Router()
  *         description: Email is already registered.
  */
 router.post('/signup', createUser)
-router.post('/login', loginUser)
 
+/**
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     summary: Log in with an email and password
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginInput'
+ *     responses:
+ *       200:
+ *         description: Credentials accepted.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Invalid email or password.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post('/login', loginUser)
 
 
 /**
@@ -139,3 +165,4 @@ router.post('/login', loginUser)
  *         description: Failed to fetch current user
  */
 export default router
+
