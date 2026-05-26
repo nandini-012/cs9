@@ -157,3 +157,29 @@ export async function deleteUser(req, res, next) {
     next(error)
   }
 }
+
+export async function logout(req,res,next){
+try{
+res.status(200).json({
+success:true,
+message:
+'Logged out'
+})
+
+}catch(error){
+next(error)
+}
+}
+
+export async function me(req,res,next){
+try{
+res.status(200).json({
+success:true,
+message:
+'Current user'
+})
+
+}catch(error){
+next(error)
+}
+}

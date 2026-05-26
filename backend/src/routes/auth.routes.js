@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createUser,loginUser} from '../controllers/user.controller.js'
+import { createUser,loginUser,logout,me} from '../controllers/user.controller.js'
 
 const router = Router()
 
@@ -60,7 +60,8 @@ router.post('/signup', createUser)
  *               $ref: '#/components/schemas/Error'
  */
 router.post('/login', loginUser)
-
+router.post('/logout',logout)
+router.get('/me',me)
 
 /**
  * @swagger
@@ -164,5 +165,7 @@ router.post('/login', loginUser)
  *       500:
  *         description: Failed to fetch current user
  */
-export default router
 
+
+
+export default router
