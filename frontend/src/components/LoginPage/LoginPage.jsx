@@ -1,87 +1,120 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { getRoleRedirect, useAuth } from "../../context/AuthContext";
-import "./LoginPage.css";
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { getRoleRedirect, useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate  = useNavigate();
+  const location  = useLocation();
   const { login } = useAuth();
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
+
+  const [form,       setForm]       = useState({ email: '', password: '' });
+  const [error,      setError]      = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (event) => {
-    setForm((currentForm) => ({
-      ...currentForm,
-      [event.target.name]: event.target.value,
-    }));
+  const handleChange = (e) =>
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSubmitting(true);
+    try {
+      const user = await login(form);
+      const from = location.state?.from?.pathname;
+      navigate(from || getRoleRedirect(user?.role), { replace: true });
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setSubmitting(false);
+    }
   };
-const handleSubmit = async (event) => {
-  event.preventDefault();
-
-  setError("");
-  setSubmitting(true);
-
-  try {
-    const user = await login(form);
-
-    const redirectedFrom =
-      location.state?.from?.pathname;
-
-    navigate(
-      redirectedFrom ||
-      getRoleRedirect(user?.role),
-      { replace: true }
-    );
-
-  } catch (apiError) {
-    setError(
-      apiError.message ||
-      "Login failed"
-    );
-
-  } finally {
-    setSubmitting(false);
-  }
-};
-
 
   return (
-    <main className="login-page">
-      <form className="login-card" onSubmit={handleSubmit}>
-        <h1>HelpDesk</h1>
+    <div style={{
+      minHeight: '100svh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, var(--color-primary) 0%, #243360 100%)',
+      padding: 24,
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: 380, padding: 36 }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>⚡</div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--color-primary)', marginBottom: 4 }}>
+            FAQ Portal
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--color-text-3)' }}>Welcome back! Sign in to continue.</p>
+        </div>
 
-        {error ? <p className="login-error">{error}</p> : null}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Error */}
+          {error && (
+            <div style={{
+              background: 'rgba(217,64,64,0.1)',
+              border: '1px solid rgba(217,64,64,0.3)',
+              borderRadius: 8, padding: '10px 14px',
+              color: 'var(--color-danger)', fontSize: 13,
+            }}>
+              {error}
+            </div>
+          )}
 
-        <label>
-          Email
-          <input
-            autoComplete="email"
-            name="email"
-            onChange={handleChange}
-            required
-            type="email"
-            value={form.email}
-          />
-        </label>
+          {/* Email */}
+          <div>
+            <label className="form-label">Email address</label>
+            <input
+              className="form-input"
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="you@university.edu"
+              required
+              autoComplete="email"
+            />
+          </div>
 
-        <label>
-          Password
-          <input
-            autoComplete="current-password"
-            name="password"
-            onChange={handleChange}
-            required
-            type="password"
-            value={form.password}
-          />
-        </label>
+          {/* Password */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+              <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
+              <a href="#" style={{ fontSize: 12, color: 'var(--color-accent)', fontWeight: 500 }}>
+                Forgot password?
+              </a>
+            </div>
+            <input
+              className="form-input"
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+              required
+              autoComplete="current-password"
+            />
+          </div>
 
-        <button disabled={submitting} type="submit">
-          {submitting ? "Signing in..." : "Sign in"}
-        </button>
-      </form>
-    </main>
+          {/* Submit */}
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={submitting}
+            style={{ width: '100%', padding: '12px', marginTop: 4, fontSize: 15 }}
+          >
+            {submitting ? 'Signing in…' : 'Sign In'}
+          </button>
+        </form>
+
+        {/* Footer link */}
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--color-text-3)' }}>
+          Don't have an account?{' '}
+          <Link to="/" style={{ color: 'var(--color-accent)', fontWeight: 500 }}>
+            Learn more
+          </Link>
+        </p>
+      </div>
+    </div>
   );
 }
