@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import argon2 from "argon2";
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
@@ -34,12 +34,12 @@ userSchema.pre("save", async function hashPassword(next) {
     return next();
   }
 
-  this.password = await bcrypt.hash(this.password, 12);
+  this.password = await argon2.hash(this.password); 
   return next();
 });
 
 userSchema.methods.comparePassword = function comparePassword(password) {
-  return bcrypt.compare(password, this.password);
+  return argon2.verify(this.password, password);
 };
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

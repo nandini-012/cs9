@@ -1,7 +1,7 @@
-import bcrypt from 'bcryptjs'
+import argon2 from 'argon2'
 import User from '../models/user.model.js'
 
-const passwordHashRounds = 12
+
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
@@ -30,7 +30,7 @@ export async function createUser(req, res, next) {
     const user = await User.create({
       name: req.body.name,
       email: req.body.email,
-      passwordHash: await bcrypt.hash(req.body.password, passwordHashRounds),
+      passwordHash: await argon2.hash(req.body.password),
     })
 
     res.status(201).json(user)
@@ -62,9 +62,9 @@ export async function loginUser(req, res, next) {
       )
     }
 
-    const isPasswordMatch = await bcrypt.compare(
-      password,
+    const isPasswordMatch = await argon2.verify(
       user.passwordHash,
+      password,
     )
 
     if (!isPasswordMatch) {
@@ -123,7 +123,7 @@ export async function updateUser(req, res, next) {
 
     if (req.body.password !== undefined) {
       validatePassword(req.body.password)
-      updates.passwordHash = await bcrypt.hash(req.body.password, passwordHashRounds)
+      updates.passwordHash = await argon2.hash(req.body.password)
     }
 
     const user = await User.findOneAndUpdate(
