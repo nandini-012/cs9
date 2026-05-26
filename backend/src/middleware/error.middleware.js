@@ -17,10 +17,11 @@ export function errorHandler(error, _req, res, _next) {
 
   if (error.code === 11000) {
     statusCode = 409
-    message = 'A user with this email already exists'
+    message = 'A record with those values already exists'
   }
 
   res.status(statusCode).json({
+    success: false,
     message,
     ...(process.env.NODE_ENV !== 'production' && { stack: error.stack }),
   })

@@ -1,51 +1,67 @@
-import jwt from "jsonwebtoken";
-import sendResponse from "../utils/apiResponse.js";
+import User from '../models/user.model.js'
+import { getPrimaryRole, getUserRoles } from '../services/role.service.js'
+import { verifyAuthToken } from '../utils/auth-token.js'
 
 const getTokenFromRequest = (req) => {
-  const cookieHeader = req.headers.cookie;
+  const cookieHeader = req.headers.cookie
 
   if (!cookieHeader) {
-    return null;
+    return null
   }
 
   const cookies = Object.fromEntries(
     cookieHeader.split(";").map((cookie) => {
-      const [name, ...value] = cookie.trim().split("=");
-      return [name, decodeURIComponent(value.join("="))];
+      const [name, ...value] = cookie.trim().split('=')
+      return [name, decodeURIComponent(value.join('='))]
     })
-  );
+  )
 
-  return cookies.token || cookies.authToken || null;
-};
+  return cookies.token || cookies.authToken || null
+}
 
-export const verifyToken = (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
   const token = getTokenFromRequest(req);
 
   if (!token) {
-    return sendResponse(res, 401, false, "Missing token");
+    return res.status(401).json({ success: false, message: 'Unauthorized' })
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = {
-      userId: decoded.userId,
-      email: decoded.email,
-      role: decoded.role,
-    };
-    return next();
-  } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return sendResponse(res, 401, false, "Expired token");
+    const decoded = verifyAuthToken(token)
+    const user = await User.findOne({ user_id: decoded.userId })
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' })
     }
 
-    return sendResponse(res, 401, false, "Invalid token");
+    if (user.status && user.status !== 'active') {
+      return res.status(403).json({ success: false, message: 'Account disabled' })
+    }
+
+    const roles = await getUserRoles(user)
+
+    req.user = {
+      userId: user.user_id,
+      email: user.email,
+      role: getPrimaryRole(roles),
+      roles,
+    }
+    req.authUser = user
+
+    return next()
+  } catch (error) {
+    if (error.code === 'TOKEN_EXPIRED') {
+      return res.status(401).json({ success: false, message: 'Expired token' })
+    }
+
+    return res.status(401).json({ success: false, message: 'Invalid token' })
   }
-};
+}
 
 export const checkRole = (...allowedRoles) => (req, res, next) => {
-  if (!req.user || !allowedRoles.includes(req.user.role)) {
-    return sendResponse(res, 403, false, "Unauthorized role");
+  if (!req.user || !req.user.roles.some((role) => allowedRoles.includes(role))) {
+    return res.status(403).json({ success: false, message: 'Forbidden' })
   }
 
-  return next();
-};
+  return next()
+}

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "seed:admin": "node src/scripts/seed-admin.js",
+    "test": "node --test"
   },
   "dependencies": {
     "argon2": "^0.44.0",

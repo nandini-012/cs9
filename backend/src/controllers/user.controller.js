@@ -1,204 +1,196 @@
-import argon2 from 'argon2'
+import Answer from '../models/answer.model.js'
+import Notification from '../models/notification.model.js'
+import Question from '../models/question.model.js'
+import Role from '../models/role.model.js'
+import UserProfile from '../models/user-profile.model.js'
+import UserRoleMapper from '../models/user-role-mapper.model.js'
 import User from '../models/user.model.js'
+import { getUserRoles, normalizeRoleName } from '../services/role.service.js'
+import {
+  createHttpError,
+  escapeRegex,
+  getPagination,
+  paginationResult,
+} from '../utils/http.js'
 
+function publicUser(user, roles, includeEmail = false) {
+  const value = {
+    id: user.user_id,
+    name: user.name,
+    roles,
+    avatarUrl: user.avatar_url,
+    sparkPoints: user.spark_points || 0,
+    createdAt: user.created_at,
+  }
 
-const uuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  if (includeEmail) {
+    value.email = user.email
+    value.status = user.status || 'active'
+  }
 
-function createHttpError(statusCode, message) {
-  const error = new Error(message)
-  error.statusCode = statusCode
-  return error
+  return value
 }
 
-function validateUserId(id) {
-  if (!uuidPattern.test(id)) {
-    throw createHttpError(400, 'Invalid user id')
+function publicProfile(profile, canViewPrivate) {
+  if (!profile || canViewPrivate) {
+    return profile || {}
+  }
+
+  return {
+    displayName: profile.display_name,
+    bio: profile.bio,
+    avatarUrl: profile.avatar_url,
+    expertise: profile.expertise || [],
+    reputation: profile.reputation || 0,
   }
 }
 
-function validatePassword(password) {
-  if (typeof password !== 'string' || password.length < 8) {
-    throw createHttpError(400, 'Password must be at least 8 characters')
-  }
-}
-
-export async function createUser(req, res, next) {
+export async function listUsers(req, res, next) {
   try {
-    validatePassword(req.body.password)
+    const { page, limit, skip } = getPagination(req.query)
+    const filter = {}
+    const role = req.query.role ? normalizeRoleName(req.query.role) : null
 
-    const user = await User.create({
-      name: req.body.name,
-      email: req.body.email,
-      passwordHash: await argon2.hash(req.body.password),
-    })
-
-    res.status(201).json(user)
-  } catch (error) {
-    next(error)
-  }
-}
-
-export async function loginUser(req, res, next) {
-  try {
-    const email =
-      typeof req.body.email === 'string'
-        ? req.body.email.trim().toLowerCase()
-        : ''
-
-    const password =
-      typeof req.body.password === 'string'
-        ? req.body.password
-        : ''
-
-    const user = await User.findOne({
-      email,
-    }).select('+passwordHash')
-
-    if (!user || !password) {
-      throw createHttpError(
-        401,
-        'Invalid email or password',
-      )
+    if (req.query.role && !role) {
+      throw createHttpError(400, 'Invalid role')
     }
 
-    const isPasswordMatch = await argon2.verify(
-      user.passwordHash,
-      password,
+    if (req.query.status) {
+      filter.status = req.query.status
+    }
+
+    if (typeof req.query.search === 'string' && req.query.search.trim()) {
+      const search = new RegExp(escapeRegex(req.query.search.trim()), 'i')
+      filter.$or = [{ name: search }, { email: search }]
+    }
+
+    if (role) {
+      const roleDocument = await Role.findOne({ name: role.toLowerCase() }).lean()
+      const mappings = roleDocument
+        ? await UserRoleMapper.find({ role_id: roleDocument.role_id }).select('user_id').lean()
+        : []
+      const userIds = mappings.map((mapping) => mapping.user_id)
+
+      filter.user_id = { $in: userIds }
+    }
+
+    const [users, total] = await Promise.all([
+      User.find(filter).sort({ created_at: -1 }).skip(skip).limit(limit),
+      User.countDocuments(filter),
+    ])
+
+    const result = await Promise.all(
+      users.map(async (user) => publicUser(user, await getUserRoles(user), true)),
     )
 
-    if (!isPasswordMatch) {
-      throw createHttpError(
-        401,
-        'Invalid email or password',
-      )
-    }
-    if(user.role == 'ADMIN'){
-      return res.status(200).json({
-       success:true,
-       message:'Admin login successful',
-       role:'ADMIN',
-       user
-     })
-    }  
-
-
-  res.status(200).json({
-   success:true,
-   message:'Admin login successful',
-   user:{
-   id:user._id,
-   name:user.name,
-   email:user.email,
-   role:user.role
-  }
-})
-} catch (error) {
-    next(error)
-  }
-}
-
-
-
-export async function getUsers(_req, res, next) {
-  try {
-    const users = await User.find().sort({ created_at: -1 })
-
-    res.json(users)
+    res.json({
+      success: true,
+      users: result,
+      pagination: paginationResult(page, limit, total),
+    })
   } catch (error) {
     next(error)
   }
 }
 
-export async function getUser(req, res, next) {
+export async function getUserById(req, res, next) {
   try {
-    validateUserId(req.params.id)
-
-    const user = await User.findOne({ user_id: req.params.id })
+    const user = await User.findOne({ user_id: req.params.userId })
 
     if (!user) {
       throw createHttpError(404, 'User not found')
     }
 
-    res.json(user)
+    const [roles, profile, questionsCount, answersCount, acceptedAnswersCount] =
+      await Promise.all([
+        getUserRoles(user),
+        UserProfile.findOne({ user_id: user.user_id }).lean(),
+        Question.countDocuments({ author_id: user.user_id }),
+        Answer.countDocuments({ author_id: user.user_id }),
+        Answer.countDocuments({
+          author_id: user.user_id,
+          is_accepted: true,
+          is_deleted: { $ne: true },
+        }),
+      ])
+
+    const canViewEmail =
+      req.user.userId === user.user_id || req.user.roles.includes('ADMIN')
+
+    res.json({
+      success: true,
+      user: {
+        ...publicUser(user, roles, canViewEmail),
+        profile: publicProfile(profile, canViewEmail),
+        stats: { questionsCount, answersCount, acceptedAnswersCount },
+      },
+    })
   } catch (error) {
     next(error)
   }
 }
 
-export async function updateUser(req, res, next) {
+export async function updateUserStatus(req, res, next) {
   try {
-    validateUserId(req.params.id)
+    const allowedStatuses = ['active', 'disabled', 'suspended']
+    const status = typeof req.body.status === 'string' ? req.body.status.toLowerCase() : ''
 
-    const updates = {}
-
-    if (req.body.name !== undefined) {
-      updates.name = req.body.name
+    if (!allowedStatuses.includes(status)) {
+      throw createHttpError(400, 'Status must be active, disabled, or suspended')
     }
 
-    if (req.body.email !== undefined) {
-      updates.email = req.body.email
+    const existingUser = await User.findOne({ user_id: req.params.userId })
+
+    if (!existingUser) {
+      throw createHttpError(404, 'User not found')
     }
 
-    if (req.body.password !== undefined) {
-      validatePassword(req.body.password)
-      updates.passwordHash = await argon2.hash(req.body.password)
+    if (
+      status !== 'active' &&
+      (!existingUser.status || existingUser.status === 'active') &&
+      (await getUserRoles(existingUser)).includes('ADMIN')
+    ) {
+      const adminRole = await Role.findOne({ name: 'admin' }).lean()
+      const adminMappings = adminRole
+        ? await UserRoleMapper.find({ role_id: adminRole.role_id }).select('user_id').lean()
+        : []
+      const activeAdminCount = await User.countDocuments({
+        user_id: { $in: adminMappings.map((mapping) => mapping.user_id) },
+        $or: [{ status: 'active' }, { status: { $exists: false } }],
+      })
+
+      if (activeAdminCount <= 1) {
+        throw createHttpError(409, 'Cannot disable final active admin')
+      }
     }
 
     const user = await User.findOneAndUpdate(
-      { user_id: req.params.id },
-      updates,
+      { user_id: req.params.userId },
+      {
+        $set: {
+          status,
+          status_reason: req.body.reason || '',
+          status_updated_by: req.user.userId,
+          status_updated_at: new Date(),
+        },
+      },
       { new: true, runValidators: true },
     )
 
-    if (!user) {
-      throw createHttpError(404, 'User not found')
+    if (user.user_id !== req.user.userId) {
+      await Notification.create({
+        recipient_id: user.user_id,
+        actor_id: req.user.userId,
+        type: 'account_status',
+        title: 'Account status updated',
+        body: `Your account status is now ${status}.`,
+        reference_id: user.user_id,
+        reference_type: 'user',
+      })
     }
 
-    res.json(user)
+    res.json({ success: true, message: 'User status updated' })
   } catch (error) {
     next(error)
   }
-}
-
-export async function deleteUser(req, res, next) {
-  try {
-    validateUserId(req.params.id)
-
-    const user = await User.findOneAndDelete({ user_id: req.params.id })
-
-    if (!user) {
-      throw createHttpError(404, 'User not found')
-    }
-
-    res.status(204).send()
-  } catch (error) {
-    next(error)
-  }
-}
-
-export async function logout(req,res,next){
-try{
-res.status(200).json({
-success:true,
-message:
-'Logged out'
-})
-
-}catch(error){
-next(error)
-}
-}
-
-export async function me(req,res,next){
-try{
-res.status(200).json({
-success:true,
-message:
-'Current user'
-})
-
-}catch(error){
-next(error)
-}
 }

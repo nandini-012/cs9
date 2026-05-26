@@ -29,6 +29,47 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Password is required'],
       select: false,
     },
+    role: {
+      type: String,
+      enum: ['USER', 'RESOLVER', 'ADMIN'],
+      default: 'USER',
+      index: true,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'disabled', 'suspended'],
+      default: 'active',
+      index: true,
+    },
+    status_reason: {
+      type: String,
+      trim: true,
+    },
+    status_updated_by: String,
+    status_updated_at: Date,
+    is_expert: {
+      type: Boolean,
+      default: false,
+    },
+    is_verified_expert: {
+      type: Boolean,
+      default: false,
+    },
+    expert_type: {
+      type: String,
+      trim: true,
+    },
+    specialty: {
+      type: String,
+      trim: true,
+    },
+    spark_points: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
+    last_login_at: Date,
+    avatar_url: String,
   },
   {
     collection: 'users',
