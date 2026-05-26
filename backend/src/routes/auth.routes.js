@@ -62,6 +62,7 @@ router.post('/signup', createUser)
 router.post('/login', loginUser)
 router.post('/logout',logout)
 router.get('/me',me)
+router.post('/admin/login',loginUser)
 
 /**
  * @swagger

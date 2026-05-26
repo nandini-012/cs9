@@ -73,12 +73,31 @@ export async function loginUser(req, res, next) {
         'Invalid email or password',
       )
     }
+    if(user.role == 'ADMIN'){
+      return res.status(200).json({
+       success:true,
+       message:'Admin login successful',
+       role:'ADMIN',
+       user
+     })
+    }  
 
-    res.status(200).json(user)
-  } catch (error) {
+
+  res.status(200).json({
+   success:true,
+   message:'Admin login successful',
+   user:{
+   id:user._id,
+   name:user.name,
+   email:user.email,
+   role:user.role
+  }
+})
+} catch (error) {
     next(error)
   }
 }
+
 
 
 export async function getUsers(_req, res, next) {
