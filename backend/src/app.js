@@ -5,6 +5,7 @@ import swaggerSpec from './config/swagger.js'
 import { errorHandler, notFound } from './middleware/error.middleware.js'
 import authRoutes from './routes/auth.routes.js'
 import userRoutes from './routes/user.routes.js'
+import questionRoutes from './routes/question.routes.js'
 
 const app = express()
 
@@ -50,6 +51,7 @@ app.get('/', (_req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/questions', questionRoutes)
 
 app.use(notFound)
 app.use(errorHandler)

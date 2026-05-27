@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import app from './app.js'
 import  connectDB  from './config/db.js'
+import questionRoutes from './routes/question.routes.js'
 
 const port = Number(process.env.PORT) || 3000
 
@@ -35,6 +36,8 @@ process.nextTick(() => {
       return next();
     });
     app.use("/auth", authRoutes);
+    app.use('/api/questions', questionRoutes);
+
     app.use("/", protectedRoutes);
   }
 });
