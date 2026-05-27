@@ -16,11 +16,28 @@ import questionRoutes from './routes/question.routes.js'
 import resolverRoutes from './routes/resolver.routes.js'
 import sparkRoutes from './routes/spark.routes.js'
 import userRoutes from './routes/user.routes.js'
-import questionRoutes from './routes/question.routes.js'
 
 const app = express()
 
-app.use(cors({ origin: true, credentials: true }))
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : null
+
+app.use(
+  cors({
+    origin: allowedOrigins
+      ? (origin, callback) => {
+          // Allow requests with no origin (e.g. server-to-server, curl)
+          if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true)
+          } else {
+            callback(new Error(`CORS: origin ${origin} not allowed`))
+          }
+        }
+      : 'http://localhost:3000',
+    credentials: true,
+  }),
+)
 app.use(express.json())
 
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))

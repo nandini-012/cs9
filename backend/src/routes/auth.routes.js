@@ -17,7 +17,6 @@ const router = Router()
  *         description: Privileged roles must be assigned by an admin.
  */
 router.post('/signup', signup)
-router.post('/register', signup)
 
 /**
  * @openapi
@@ -32,7 +31,6 @@ router.post('/register', signup)
  *         description: Invalid credentials.
  */
 router.post('/login', login)
-router.post('/admin/login', login)
 router.post('/logout', verifyToken, logout)
 router.get('/me', verifyToken, me)
 

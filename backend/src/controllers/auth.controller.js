@@ -20,7 +20,6 @@ function cookieOptions() {
 
 function safeUser(user, roles) {
   return {
-    id: user.user_id,
     userId: user.user_id,
     name: user.name,
     email: user.email,
@@ -66,7 +65,7 @@ export async function signup(req, res, next) {
       userId: user.user_id,
       role: 'USER',
       message: 'Signup successful',
-      data: { user: responseUser },
+      user: responseUser,
     })
   } catch (error) {
     next(error)
@@ -108,7 +107,6 @@ export async function login(req, res, next) {
     res.json({
       success: true,
       user: responseUser,
-      data: { user: responseUser },
     })
   } catch (error) {
     next(error)
@@ -131,6 +129,5 @@ export function me(req, res) {
   res.json({
     success: true,
     user: responseUser,
-    data: { user: responseUser },
   })
 }

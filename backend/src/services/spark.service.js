@@ -10,6 +10,8 @@ export const SPARK_POINTS = {
   ADD_REFERENCE: 5,
   DAILY_LOGIN: 1,
   EXPERT_VERIFIED: 20,
+  QUESTION_BOUNTY: null,   // negative, set dynamically in reserveBounty
+  BOUNTY_AWARDED: null,    // positive, set dynamically from question.spark_bounty
 }
 
 export async function awardSpark({

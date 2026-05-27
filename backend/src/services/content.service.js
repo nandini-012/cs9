@@ -70,6 +70,9 @@ export async function applyModerationAction({
     if (targetType === 'comment') {
       updates.is_deleted = false
     }
+    if (targetType === 'answer') {
+      updates.is_deleted = false
+    }
     if (action === 'restore' && targetType === 'question') {
       const question = await Question.findOne({ question_id: targetId }).select('answer_count')
       updates.status = question?.answer_count > 0 ? 'answered' : 'unanswered'
@@ -81,6 +84,9 @@ export async function applyModerationAction({
     if (targetType === 'question') {
       updates.status = 'removed'
     }
+    if (targetType === 'answer') {
+      updates.is_deleted = true
+    }
     if (targetType === 'comment') {
       updates.is_deleted = true
     }
@@ -88,11 +94,13 @@ export async function applyModerationAction({
 
   if (action === 'lock') {
     updates.status = 'closed'
+    updates.is_locked = true
   }
 
   if (action === 'unlock') {
     const question = await Question.findOne({ question_id: targetId }).select('answer_count')
     updates.status = question?.answer_count > 0 ? 'answered' : 'unanswered'
+    updates.is_locked = false
   }
 
   const target = await definition.Model.findOneAndUpdate(

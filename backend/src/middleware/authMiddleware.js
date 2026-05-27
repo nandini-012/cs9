@@ -3,6 +3,16 @@ import { getPrimaryRole, getUserRoles } from '../services/role.service.js'
 import { verifyAuthToken } from '../utils/auth-token.js'
 
 const getTokenFromRequest = (req) => {
+  // Prefer Authorization: Bearer <token> header (API clients, mobile)
+  const authHeader = req.headers.authorization
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const bearer = authHeader.slice(7).trim()
+    if (bearer) {
+      return bearer
+    }
+  }
+
+  // Fall back to HTTP-only cookie (browser sessions)
   const cookieHeader = req.headers.cookie
 
   if (!cookieHeader) {
@@ -10,17 +20,17 @@ const getTokenFromRequest = (req) => {
   }
 
   const cookies = Object.fromEntries(
-    cookieHeader.split(";").map((cookie) => {
+    cookieHeader.split(';').map((cookie) => {
       const [name, ...value] = cookie.trim().split('=')
       return [name, decodeURIComponent(value.join('='))]
-    })
+    }),
   )
 
   return cookies.token || cookies.authToken || null
 }
 
 export const verifyToken = async (req, res, next) => {
-  const token = getTokenFromRequest(req);
+  const token = getTokenFromRequest(req)
 
   if (!token) {
     return res.status(401).json({ success: false, message: 'Unauthorized' })
@@ -58,10 +68,11 @@ export const verifyToken = async (req, res, next) => {
   }
 }
 
-export const checkRole = (...allowedRoles) => (req, res, next) => {
-  if (!req.user || !req.user.roles.some((role) => allowedRoles.includes(role))) {
-    return res.status(403).json({ success: false, message: 'Forbidden' })
-  }
+export const checkRole = (...allowedRoles) =>
+  (req, res, next) => {
+    if (!req.user || !req.user.roles.some((role) => allowedRoles.includes(role))) {
+      return res.status(403).json({ success: false, message: 'Forbidden' })
+    }
 
-  return next()
-}
+    return next()
+  }

@@ -123,6 +123,7 @@ export async function listComments(req, res, next) {
 
     if (!isAdmin(req)) {
       filter.moderation_status = 'approved'
+      filter.is_deleted = { $ne: true }
     }
 
     const [comments, total] = await Promise.all([
@@ -175,8 +176,8 @@ export async function deleteComment(req, res, next) {
       throw createHttpError(403, 'Forbidden')
     }
 
+    // Soft-delete: preserve body for audit purposes, consistent with answer deletion
     comment.is_deleted = true
-    comment.body = '[comment removed]'
     await comment.save()
 
     res.json({ success: true, message: 'Comment deleted' })
