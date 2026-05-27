@@ -1,37 +1,19 @@
-import { useEffect, useState } from 'react'
-import { publicAxios } from './api/axios.js'
-import { LoginPage } from './components/index.js'
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import LoginPage from "./components/LoginPage/LoginPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Unauthorized from "./components/Unauthorized";
 import './App.css'
 
 function App() {
-  const [apiStatus, setApiStatus] = useState('Connecting to API...')
-
-  useEffect(() => {
-    let isMounted = true
-
-    publicAxios
-      .get('/health')
-      .then(({ data }) => {
-        if (isMounted) {
-          setApiStatus(`API connected: ${data.status}`)
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setApiStatus('API unavailable')
-        }
-      })
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
   return (
-    <LoginPage apiStatus={apiStatus} />
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
-import ProtectedRoute from "./components/ProtectedRoute";
-import Unauthorized from "./components/Unauthorized";
+export default App;
