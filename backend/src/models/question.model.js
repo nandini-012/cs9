@@ -82,7 +82,12 @@ const questionSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-
+    /* Added to track if the question was raised anonymously */
+    is_anonymous: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     status: {
       type: String,
       enum: [
