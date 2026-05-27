@@ -3,10 +3,12 @@ import { Router } from 'express'
 import {
 createQuestion,
 getQuestions,
+searchQuestions,
 getQuestionById,
 updateQuestion,
 deleteQuestion,
-acceptAnswer
+acceptAnswer,
+getQuestionsByCategory
 }
 from '../controllers/question.controller.js'
 
@@ -189,6 +191,48 @@ router.get('/',getQuestions)
 
 /**
  * @openapi
+ * /api/questions/search:
+ *   get:
+ *     summary: Search questions
+ *     tags: [Questions]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example:
+ *           internship
+ *     responses:
+ *       200:
+ *         description: Search results
+ */
+
+router.get('/search',searchQuestions)
+
+/**
+ * @openapi
+ * /api/questions/category:
+ *   get:
+ *     summary: Filter questions by category
+ *     tags: [Questions]
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example:
+ *           forms
+ *     responses:
+ *       200:
+ *         description: Filtered questions
+ */
+
+router.get('/category',getQuestionsByCategory)
+
+/**
+ * @openapi
  * /api/questions/{id}:
  *   get:
  *     summary: Get question by id
@@ -207,6 +251,8 @@ router.get('/',getQuestions)
  *       404:
  *         description: Question not found
  */
+
+
 
 router.get('/:id',getQuestionById)
 

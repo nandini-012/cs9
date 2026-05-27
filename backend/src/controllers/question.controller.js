@@ -75,10 +75,9 @@ next(error)
 
 export async function updateQuestion(req,res,next){
 try{
- const question =
- await Question.findByIdAndUpdate(
+const question = await Question.findByIdAndUpdate(
 
- req.params.id,
+req.params.id,
 
  {
  title:
@@ -173,6 +172,51 @@ message:
 res.status(200).json({
 message:
 'Answer accepted'
+})
+
+}catch(error){
+next(error)
+}
+}
+
+export async function searchQuestions(req,res,next){
+try{
+
+const query =
+req.query.q || ''
+
+const questions =
+await Question.find({
+
+$text:{
+$search:query
+}
+
+})
+
+res.status(200).json({
+success:true,
+questions
+})
+
+}catch(error){
+next(error)
+}
+}
+
+export async function getQuestionsByCategory(req,res,next){
+try{
+
+const questions = await Question.find({
+
+category:
+req.query.category
+
+})
+
+res.status(200).json({
+success:true,
+questions
 })
 
 }catch(error){
