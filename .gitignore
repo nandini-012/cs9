@@ -28,3 +28,4 @@ dist-ssr
 node_modules/
 frontend/dist/
 .DS_Store
+backend/test/
