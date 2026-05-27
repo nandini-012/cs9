@@ -16,6 +16,7 @@ import questionRoutes from './routes/question.routes.js'
 import resolverRoutes from './routes/resolver.routes.js'
 import sparkRoutes from './routes/spark.routes.js'
 import userRoutes from './routes/user.routes.js'
+import questionRoutes from './routes/question.routes.js'
 
 const app = express()
 
