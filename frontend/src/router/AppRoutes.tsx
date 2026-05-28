@@ -33,7 +33,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin']}>
+          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
             <Dashboard />
           </ProtectedRoute>
         }
@@ -41,7 +41,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/raise-query"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin']}>
+          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
             <RaiseQuery />
           </ProtectedRoute>
         }
@@ -49,7 +49,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/track-query"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin']}>
+          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
             <TrackQuery />
           </ProtectedRoute>
         }
@@ -57,7 +57,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/profile"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin']}>
+          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
             <ProfileSettingsView />
           </ProtectedRoute>
         }
@@ -65,7 +65,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/query/:id"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin']}>
+          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
             <QueryDetailView />
           </ProtectedRoute>
         }
@@ -73,7 +73,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/student-dashboard"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin']}>
+          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
             <StudentDashboard />
           </ProtectedRoute>
         }
@@ -81,7 +81,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/raise-query-view"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin']}>
+          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
             <RaiseQueryView />
           </ProtectedRoute>
         }
