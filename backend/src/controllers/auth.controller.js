@@ -29,9 +29,41 @@ function safeUser(user, roles) {
   }
 }
 
+/**
+ * Validates password strength — mirrors frontend usePasswordStrength checks.
+ * Requires at least 3 of 5 criteria met (score >= 60):
+ *   1. length >= 8
+ *   2. contains uppercase
+ *   3. contains lowercase
+ *   4. contains digit
+ *   5. contains special character
+ */
 function validatePassword(password) {
-  if (typeof password !== 'string' || password.length < 8) {
-    throw createHttpError(400, 'Password must be at least 8 characters')
+  if (typeof password !== 'string') {
+    throw createHttpError(400, 'Password must be a string')
+  }
+
+  const checks = [
+    password.length >= 8,
+    /[A-Z]/.test(password),
+    /[a-z]/.test(password),
+    /\d/.test(password),
+    /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+  ]
+
+  const score = checks.filter(Boolean).length * 20
+
+  if (score < 60) {
+    const messages = []
+    if (!checks[0]) messages.push('at least 8 characters')
+    if (!checks[1]) messages.push('an uppercase letter')
+    if (!checks[2]) messages.push('a lowercase letter')
+    if (!checks[3]) messages.push('a number')
+    if (!checks[4]) messages.push('a special character')
+    throw createHttpError(
+      400,
+      `Password is too weak. Must have at least 3 of: ${messages.join(', ')}`
+    )
   }
 }
 
