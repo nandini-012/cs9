@@ -1,5 +1,7 @@
 import cors from 'cors'
 import express from 'express'
+import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
 import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from './config/swagger.js'
 import { errorHandler, notFound } from './middleware/error.middleware.js'
@@ -23,11 +25,14 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
   : null
 
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}))
+
 app.use(
   cors({
     origin: allowedOrigins
       ? (origin, callback) => {
-          // Allow requests with no origin (e.g. server-to-server, curl)
           if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true)
           } else {
@@ -38,7 +43,18 @@ app.use(
     credentials: true,
   }),
 )
-app.use(express.json())
+
+app.use(express.json({ limit: '10kb' }))
+
+/** Global rate limit: 100 requests per 15 minutes per IP */
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests, please try again later.' },
+})
+app.use(globalLimiter)
 
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 app.get('/api/docs.json', (_req, res) => {

@@ -1,8 +1,40 @@
 import { Router } from 'express'
+import { body } from 'express-validator'
+import rateLimit from 'express-rate-limit'
 import { login, logout, me, signup } from '../controllers/auth.controller.js'
 import { verifyToken } from '../middleware/authMiddleware.js'
 
 const router = Router()
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts, try again in 15 minutes.' },
+})
+
+const signupLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many signup attempts, try again later.' },
+})
+
+const validateSignup = [
+  body('name')
+    .trim()
+    .isLength({ min: 2, max: 60 })
+    .withMessage('Name must be 2–60 characters')
+    .matches(/^[\p{L} '.\-]+$/u)
+    .withMessage('Name contains invalid characters'),
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Valid email address required'),
+  body('password').exists().withMessage('Password required'),
+]
 
 /**
  * @openapi
@@ -16,7 +48,7 @@ const router = Router()
  *       403:
  *         description: Privileged roles must be assigned by an admin.
  */
-router.post('/signup', signup)
+router.post('/signup', signupLimiter, validateSignup, signup)
 
 /**
  * @openapi
@@ -30,7 +62,12 @@ router.post('/signup', signup)
  *       401:
  *         description: Invalid credentials.
  */
-router.post('/login', login)
+const validateLogin = [
+  body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+  body('password').exists().withMessage('Password required'),
+]
+
+router.post('/login', loginLimiter, validateLogin, login)
 router.post('/logout', verifyToken, logout)
 router.get('/me', verifyToken, me)
 

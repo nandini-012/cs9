@@ -1,3 +1,4 @@
+import { validationResult } from 'express-validator'
 import argon2 from 'argon2'
 import UserProfile from '../models/user-profile.model.js'
 import User from '../models/user.model.js'
@@ -69,6 +70,11 @@ function validatePassword(password) {
 
 export async function signup(req, res, next) {
   try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      throw createHttpError(400, errors.array()[0].msg)
+    }
+
     const requestedRole =
       typeof req.body.role === 'string' ? req.body.role.toUpperCase() : 'USER'
 
@@ -106,6 +112,11 @@ export async function signup(req, res, next) {
 
 export async function login(req, res, next) {
   try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      throw createHttpError(400, errors.array()[0].msg)
+    }
+
     const email =
       typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : ''
     const password = typeof req.body.password === 'string' ? req.body.password : ''
