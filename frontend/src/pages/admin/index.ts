@@ -1,0 +1,5 @@
+export { AdminDashboard } from './AdminDashboard'
+export { AdminQueryReview } from './AdminQueryReview'
+export { FAQManagementView } from './FAQManagementView'
+export { QueriesManagementView } from './QueriesManagementView'
+export { SpurtiManagementView } from './SpurtiManagementView'
