@@ -10,6 +10,35 @@ import {
   paginationResult,
 } from '../utils/http.js'
 
+export async function listPublishedFAQs(req, res, next) {
+  try {
+    const faqs = await Question.find({
+      kind: 'faq',
+      faq_status: 'published',
+    })
+      .sort({ category: 1, updated_at: -1 })
+      .lean()
+
+    const grouped = {}
+    for (const faq of faqs) {
+      const cat = faq.category || 'General'
+      if (!grouped[cat]) grouped[cat] = []
+      grouped[cat].push({
+        id: faq.question_id,
+        question: faq.question,
+        answer: faq.answer || '',
+        category: cat,
+        tags: faq.tags || [],
+        updatedAt: faq.updated_at,
+      })
+    }
+
+    res.json({ success: true, faqs: grouped, total: faqs.length })
+  } catch (error) {
+    next(error)
+  }
+}
+
 function isAdmin(req) {
   return req.user.roles.includes('ADMIN')
 }

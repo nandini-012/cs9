@@ -5,12 +5,25 @@ import {
   createQuestion,
   deleteQuestion,
   getQuestionById,
+  listPublishedFAQs,
   listQuestions,
   updateQuestion,
 } from '../controllers/question.controller.js'
 import { checkRole, verifyToken } from '../middleware/authMiddleware.js'
 
 const router = Router()
+
+/**
+ * @openapi
+ * /api/faqs:
+ *   get:
+ *     summary: List all published FAQs grouped by category (public, no auth)
+ *     tags: [FAQs]
+ *     responses:
+ *       200:
+ *         description: FAQs grouped by category
+ */
+router.get('/faqs', listPublishedFAQs)
 
 router.use(verifyToken)
 

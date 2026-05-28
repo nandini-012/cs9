@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit'
 import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from './config/swagger.js'
 import { errorHandler, notFound } from './middleware/error.middleware.js'
+import { listPublishedFAQs } from './controllers/question.controller.js'
 import adminRoutes from './routes/admin.routes.js'
 import answerRoutes from './routes/answer.routes.js'
 import authRoutes from './routes/auth.routes.js'
@@ -92,6 +93,9 @@ app.get('/api/health', (_req, res) => {
 app.get('/', (_req, res) => {
   res.json({ message: 'Active API is running' })
 })
+
+/** Public FAQ listing (no auth) */
+app.get('/api/faqs', listPublishedFAQs)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
