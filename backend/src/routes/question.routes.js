@@ -12,6 +12,59 @@ import { checkRole, verifyToken } from '../middleware/authMiddleware.js'
 
 const router = Router()
 
+/**
+ * @openapi
+ * /api/faqs:
+ *   get:
+ *     summary: List all published FAQs (public — no auth required)
+ *     tags: [FAQs]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filter by category (e.g. "noc", "stipend")
+ *     responses:
+ *       200:
+ *         description: List of published FAQs grouped by category
+ */
+router.get('/faqs', async (req, res) => {
+  try {
+    const mongoose = (await import('mongoose')).default
+    const { Question } = await import('../models/question.model.js')
+    const { category } = req.query
+
+    const filter = { kind: 'faq', status: 'published' }
+    if (category) filter.category = category
+
+    const faqs = await Question.find(filter)
+      .sort({ category: 1, created_at: 1 })
+      .lean()
+      .exec()
+
+    // Group by category
+    const grouped = {}
+    for (const faq of faqs) {
+      const cat = faq.category || 'general'
+      if (!grouped[cat]) grouped[cat] = []
+      grouped[cat].push({
+        id: faq._id.toString(),
+        question: faq.title,
+        answer: faq.body || '',
+        category: cat,
+        tags: faq.tags || [],
+        updatedAt: faq.updated_at,
+      })
+    }
+
+    res.json({ faqs: grouped, total: faqs.length })
+  } catch (err) {
+    console.error('listFaqs error:', err)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
 router.use(verifyToken)
 
 /**
