@@ -127,6 +127,11 @@ export async function listQuestions(req, res, next) {
       filter.$or = [{ title: search }, { body: search }, { tags: search }]
     }
 
+    // Support ?my=1 to fetch only the current user's questions
+    if (req.query.my === '1') {
+      filter.author_id = req.user.userId
+    }
+
     if (!isAdmin(req)) {
       filter.moderation_status = 'approved'
       if (filter.status === 'removed') {
