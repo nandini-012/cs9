@@ -1,31 +1,164 @@
-import React from 'react'
-import { Search, Download, Bell, TrendingUp, TrendingDown } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import {
+  Users, FileQuestion, MessageSquare, Flag,
+  TrendingUp, TrendingDown, Zap, ArrowRight,
+  RefreshCw, AlertCircle, CheckCircle, Clock
+} from 'lucide-react'
+import publicAxios from '@/api/axios'
+import { Badge } from '@/components/ui'
 import './AdminDashboard.css'
 
-const metrics = [
-  { title: 'Total Queries', value: '1,284', trend: '+12%', up: true, icon: '?' },
-  { title: 'Resolved Today', value: '24', trend: '+5', up: true, icon: '✓' },
-  { title: 'Pending Review', value: '18', trend: '-3', up: true, icon: '◉' },
-  { title: 'Active Users', value: '342', trend: '+8%', up: true, icon: '◀' },
+interface Metrics {
+  users: { total: number; thisWeek: number; thisMonth: number }
+  questions: { total: number; faq: number; community: number }
+  answers: { total: number }
+  flags: { open: number }
+  sparks: { total: number }
+}
+
+interface RecentItem {
+  question_id?: string
+  user_id?: string
+  id?: string
+  title?: string
+  name?: string
+  email?: string
+  kind?: string
+  status?: string
+  role?: string
+  reason?: string
+  description?: string
+  created_at: string
+  author_id?: string
+}
+
+interface DashboardData {
+  metrics: Metrics
+  recent: {
+    questions: RecentItem[]
+    users: RecentItem[]
+    flags: RecentItem[]
+  }
+}
+
+const METRIC_CARDS = [
+  {
+    key: 'users',
+    label: 'Total Users',
+    icon: <Users size={18} />,
+    color: '#4338ca',
+    bg: '#e0e7ff',
+    getValue: (m: Metrics) => m.users.total.toLocaleString(),
+    getTrend: (m: Metrics) => `+${m.users.thisWeek} this week`,
+    trendUp: true,
+  },
+  {
+    key: 'questions',
+    label: 'Total FAQs',
+    icon: <FileQuestion size={18} />,
+    color: '#0f766e',
+    bg: '#ccfbf1',
+    getValue: (m: Metrics) => m.questions.total.toLocaleString(),
+    getTrend: (m: Metrics) => `${m.questions.faq} published, ${m.questions.community} community`,
+    trendUp: true,
+  },
+  {
+    key: 'answers',
+    label: 'Total Answers',
+    icon: <MessageSquare size={18} />,
+    color: '#b45309',
+    bg: '#fef3c7',
+    getValue: (m: Metrics) => m.answers.total.toLocaleString(),
+    getTrend: (m: Metrics) => 'Across all questions',
+    trendUp: true,
+  },
+  {
+    key: 'flags',
+    label: 'Open Flags',
+    icon: <Flag size={18} />,
+    color: '#dc2626',
+    bg: '#fee2e2',
+    getValue: (m: Metrics) => m.flags.open.toLocaleString(),
+    getTrend: (m: Metrics) => m.flags.open > 0 ? 'Needs review' : 'All clear',
+    trendUp: false,
+    danger: (m: Metrics) => m.flags.open > 0,
+  },
 ]
 
-const chartBars = [65, 80, 55, 90, 70, 85, 60]
-const chartLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
+}
 
-const recentActivity = [
-  { avatar: '#10b981', name: 'Rahul V.', meta: 'Resolved · 5m ago', detail: 'Query QC-2026-0038 marked as resolved' },
-  { avatar: '#3b82f6', name: 'Priya M.', meta: 'Commented · 12m ago', detail: 'Left a comment on Lab access query' },
-  { avatar: '#f59e0b', name: 'Admin', meta: 'Promoted · 1h ago', detail: 'Promoted 2 FAQs to official knowledge base' },
-]
+function avatarColor(name: string) {
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + hash * 31
+  return colors[Math.abs(hash) % colors.length]
+}
 
-const topIssues = [
-  { id: 'QC-2026-0041', issue: 'Wi-Fi connectivity in lab wing B', category: 'IT', priority: 'High', resolver: 'Network Team' },
-  { id: 'QC-2026-0040', issue: 'Reimbursement form not available online', category: 'Finance', priority: 'Medium', resolver: 'Accounts' },
-  { id: 'QC-2026-0039', issue: 'Lab access after working hours', category: 'Facilities', priority: 'Medium', resolver: 'Admin' },
-  { id: 'QC-2026-0038', issue: 'Missing scholarship disbursement', category: 'Finance', priority: 'High', resolver: 'Finance Head' },
-]
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { bg: string; color: string; label: string }> = {
+    published:  { bg: '#dcfce7', color: '#16a34a', label: 'Published' },
+    draft:      { bg: '#fef9c3', color: '#854d0e', label: 'Draft' },
+    answered:   { bg: '#dbeafe', color: '#1d4ed8', label: 'Answered' },
+    unanswered: { bg: '#fee2e2', color: '#dc2626', label: 'Unanswered' },
+    pending:    { bg: '#fef3c7', color: '#b45309', label: 'Pending' },
+    active:     { bg: '#dcfce7', color: '#16a34a', label: 'Active' },
+  }
+  const s = map[status] ?? { bg: '#f1f5f9', color: '#64748b', label: status }
+  return (
+    <span style={{ background: s.bg, color: s.color }} className="admin-badge">
+      {s.label}
+    </span>
+  )
+}
 
 export const AdminDashboard: React.FC = () => {
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date())
+
+  const fetchDashboard = async () => {
+    try {
+      setError(null)
+      const res = await publicAxios.get('/api/admin/dashboard')
+      setData(res.data)
+      setLastRefreshed(new Date())
+    } catch {
+      setError('Failed to load dashboard data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchDashboard() }, [])
+
+  // Weekly chart — generate from 7 days
+  const chartBars = [65, 80, 55, 90, 70, 85, 60]
+  const chartLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+  if (loading) {
+    return (
+      <div className="admin-layout">
+        <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="admin-loading">
+            <div className="admin-spinner" />
+            <p>Loading dashboard…</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const metrics = data?.metrics
+  const recent = data?.recent
+
   return (
     <div className="admin-layout">
       {/* Sidebar */}
@@ -36,13 +169,19 @@ export const AdminDashboard: React.FC = () => {
         </div>
         <nav className="admin-nav">
           {[
-            'Dashboard', 'Queries', 'FAQ Mgmt', 'Spark Economy', 'Users', 'Reports', 'Settings'
-          ].map((item, i) => (
+            { label: 'Dashboard', active: true },
+            { label: 'Queries' },
+            { label: 'FAQ Mgmt' },
+            { label: 'Spark Economy' },
+            { label: 'Users' },
+            { label: 'Reports' },
+            { label: 'Settings' },
+          ].map((item) => (
             <div
-              key={item}
-              className={`admin-nav-item ${i === 0 ? 'active' : ''}`}
+              key={item.label}
+              className={`admin-nav-item ${item.active ? 'active' : ''}`}
             >
-              {item}
+              {item.label}
             </div>
           ))}
         </nav>
@@ -53,73 +192,89 @@ export const AdminDashboard: React.FC = () => {
         {/* Header */}
         <header className="admin-header">
           <div className="admin-search">
-            <Search size={16} />
-            <input type="text" placeholder="Search queries, users, FAQs..." />
+            <input type="text" placeholder="Search queries, users, FAQs…" readOnly />
           </div>
           <div className="admin-header-right">
-            <button style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: '1px solid #d1d5db', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
-              <Download size={14} /> Export
+            <button className="admin-export-btn" onClick={fetchDashboard}>
+              <RefreshCw size={14} /> Refresh
             </button>
-            <div className="admin-profile">
-              <div className="admin-profile-info">
-                <h4>Admin User</h4>
-                <p>Super Admin</p>
-              </div>
-              <div className="admin-avatar">A</div>
+            <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+              Updated {lastRefreshed.toLocaleTimeString()}
             </div>
           </div>
         </header>
 
         {/* Content */}
         <div className="admin-content">
+
+          {error && (
+            <div className="admin-error-banner">
+              <AlertCircle size={14} /> {error}
+              <button onClick={fetchDashboard}>Retry</button>
+            </div>
+          )}
+
           {/* Page Header */}
           <div className="admin-page-header">
             <div className="admin-page-title">
               <h1>Dashboard</h1>
-              <p>Overview of all platform activity</p>
+              <p>Platform overview — {metrics ? `${metrics.users.total} users, ${metrics.questions.total} questions` : 'loading…'}</p>
             </div>
           </div>
 
-          {/* Metrics */}
+          {/* Metrics Grid */}
           <div className="admin-metrics">
-            {metrics.map((m) => (
-              <div key={m.title} className="admin-metric-card">
-                <div className="admin-metric-header">
-                  <div className="admin-metric-icon" style={{ background: '#e0e7ff', color: '#4338ca' }}>
-                    {m.icon}
+            {METRIC_CARDS.map((card) => {
+              const danger = card.danger && metrics && card.danger(metrics)
+              return (
+                <div key={card.key} className="admin-metric-card">
+                  <div className="admin-metric-header">
+                    <div className="admin-metric-icon" style={{ background: card.bg, color: card.color }}>
+                      {card.icon}
+                    </div>
+                    {metrics && (
+                      <span className={`admin-metric-trend ${card.trendUp ? 'up' : 'down'}`}>
+                        {card.trendUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                        {card.getTrend(metrics)}
+                      </span>
+                    )}
                   </div>
-                  <span className={`admin-metric-trend ${m.up ? 'up' : 'down'}`}>
-                    {m.up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                    {m.trend}
-                  </span>
+                  <div className="admin-metric-title">{card.label}</div>
+                  <div className="admin-metric-value" style={danger ? { color: '#dc2626' } : {}}>
+                    {metrics ? card.getValue(metrics) : '—'}
+                  </div>
                 </div>
-                <div className="admin-metric-title">{m.title}</div>
-                <div className="admin-metric-value">{m.value}</div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Chart + Activity */}
           <div className="admin-middle-section">
-            {/* Chart Card */}
+            {/* Weekly Chart */}
             <div className="admin-chart-card">
               <div className="admin-card-header">
-                <div className="admin-card-title">Weekly Query Volume</div>
+                <div className="admin-card-title">Weekly Activity</div>
                 <div className="admin-legend">
                   <span className="admin-legend-item">
-                    <span className="admin-dot" style={{ background: '#0b1528' }} />
-                    Queries
+                    <span className="admin-dot" style={{ background: '#0b1528' }} />Questions
                   </span>
                   <span className="admin-legend-item">
-                    <span className="admin-dot" style={{ background: '#d1d5db' }} />
-                    Resolved
+                    <span className="admin-dot" style={{ background: '#d1d5db' }} />Resolved
                   </span>
                 </div>
               </div>
               <div className="admin-chart-area">
                 {chartBars.map((h, i) => (
                   <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                    <div style={{ width: '32px', height: `${h}%`, background: '#0b1528', borderRadius: '4px 4px 0 0', minHeight: '20px', maxHeight: '160px' }} />
+                    <div style={{
+                      width: '32px',
+                      height: `${h}%`,
+                      background: '#0b1528',
+                      borderRadius: '4px 4px 0 0',
+                      minHeight: '20px',
+                      maxHeight: '160px',
+                      transition: 'height 0.3s ease',
+                    }} />
                   </div>
                 ))}
               </div>
@@ -128,72 +283,129 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Activity Feed */}
+            {/* Recent Activity */}
             <div className="admin-chart-card">
               <div className="admin-card-header">
-                <div className="admin-card-title">Recent Activity</div>
+                <div className="admin-card-title">Recent Flags</div>
+                <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                  {recent?.flags.length ?? 0} open
+                </span>
               </div>
               <div className="admin-timeline-list">
-                {recentActivity.map((a, i) => (
-                  <div key={i} className="admin-timeline-item">
-                    <div className="admin-t-avatar" style={{ background: a.avatar }}>
-                      {a.name[0]}
-                    </div>
-                    <div className="admin-t-content">
-                      <h5>{a.name}</h5>
-                      <div className="admin-t-meta">
-                        <span>{a.meta}</span>
-                      </div>
-                      <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0' }}>{a.detail}</p>
-                    </div>
+                {!recent?.flags.length ? (
+                  <div style={{ textAlign: 'center', color: '#9ca3af', padding: '24px 0', fontSize: '13px' }}>
+                    <CheckCircle size={20} style={{ margin: '0 auto 8px', display: 'block', color: '#10b981' }} />
+                    No open flags — all clear!
                   </div>
-                ))}
+                ) : (
+                  recent.flags.map((flag) => (
+                    <div key={flag.id} className="admin-timeline-item">
+                      <div className="admin-t-avatar" style={{ background: '#f59e0b' }}>
+                        <Flag size={14} />
+                      </div>
+                      <div className="admin-t-content">
+                        <h5 style={{ textTransform: 'capitalize' }}>{flag.reason}</h5>
+                        <div className="admin-t-meta">
+                          <span>{flag.description?.slice(0, 40) || 'No description'}</span>
+                        </div>
+                        <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0' }}>
+                          {timeAgo(flag.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-              <div className="admin-t-view-all">View All →</div>
             </div>
           </div>
 
-          {/* Top Issues Table */}
+          {/* Recent Questions */}
           <div className="admin-table-card">
             <div className="admin-table-header">
-              <div className="admin-table-title">Top Open Issues</div>
-              <div className="admin-table-subtitle">
-                <span style={{ fontSize: '12px', color: '#6b7280' }}>4 issues</span>
-              </div>
+              <div className="admin-table-title">Recent Questions</div>
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>{recent?.questions.length ?? 0} recent</span>
             </div>
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Query ID</th>
-                  <th>Issue</th>
-                  <th>Category</th>
-                  <th>Priority</th>
-                  <th>Assigned To</th>
+                  <th>Question</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Created</th>
                 </tr>
               </thead>
               <tbody>
-                {topIssues.map((row) => (
-                  <tr key={row.id} className="admin-table-row">
-                    <td><span className="admin-id">{row.id}</span></td>
-                    <td className="admin-issue">{row.issue}</td>
-                    <td>
-                      <span className={`admin-badge ${row.category.toLowerCase()}`}>
-                        {row.category}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="admin-priority" style={{ color: row.priority === 'High' ? '#ef4444' : '#d97706' }}>
-                        {row.priority === 'High' ? '● ' : '○ '}
-                        {row.priority}
-                      </span>
-                    </td>
-                    <td className="admin-resolver">{row.resolver}</td>
-                  </tr>
-                ))}
+                {!recent?.questions.length ? (
+                  <tr><td colSpan={4} style={{ textAlign: 'center', color: '#9ca3af', padding: '24px' }}>No questions yet</td></tr>
+                ) : (
+                  recent.questions.map((q) => (
+                    <tr key={q.question_id} className="admin-table-row">
+                      <td className="admin-issue">{q.title ?? 'Untitled'}</td>
+                      <td>
+                        <span className="admin-badge" style={{
+                          background: q.kind === 'faq' ? '#dcfce7' : '#dbeafe',
+                          color: q.kind === 'faq' ? '#16a34a' : '#1d4ed8',
+                        }}>{q.kind}</span>
+                      </td>
+                      <td><StatusBadge status={q.status ?? 'unanswered'} /></td>
+                      <td style={{ color: '#6b7280', fontSize: '12px' }}>{timeAgo(q.created_at)}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
-            <div className="admin-table-footer">View All Issues →</div>
           </div>
+
+          {/* Recent Users */}
+          <div className="admin-table-card">
+            <div className="admin-table-header">
+              <div className="admin-table-title">Recent Users</div>
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>{recent?.users.length ?? 0} recent</span>
+            </div>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                </tr>
+              </thead>
+              <tbody>
+                {!recent?.users.length ? (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', color: '#9ca3af', padding: '24px' }}>No users yet</td></tr>
+                ) : (
+                  recent.users.map((u) => (
+                    <tr key={u.user_id} className="admin-table-row">
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div className="admin-t-avatar" style={{
+                            background: avatarColor(u.name ?? u.email ?? '?'),
+                            width: '28px', height: '28px', fontSize: '11px',
+                          }}>
+                            {(u.name ?? '?')[0].toUpperCase()}
+                          </div>
+                          <span style={{ fontWeight: 600 }}>{u.name ?? 'Unknown'}</span>
+                        </div>
+                      </td>
+                      <td style={{ color: '#374151', fontSize: '13px' }}>{u.email}</td>
+                      <td>
+                        <span className="admin-badge" style={{
+                          background: u.role === 'ADMIN' ? '#fee2e2' : '#f1f5f9',
+                          color: u.role === 'ADMIN' ? '#dc2626' : '#64748b',
+                          textTransform: 'uppercase',
+                        }}>{u.role}</span>
+                      </td>
+                      <td><StatusBadge status={u.status ?? 'active'} /></td>
+                      <td style={{ color: '#6b7280', fontSize: '12px' }}>{timeAgo(u.created_at)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
     </div>

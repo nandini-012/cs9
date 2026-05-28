@@ -39,17 +39,75 @@ export async function getAdminDashboard(req, res, next) {
     const periodFilter = createdAt ? { created_at: createdAt } : {}
     const openFlagFilter = { ...periodFilter, status: 'pending' }
 
-    const [users, questions, answers, openFlags, sparkTransactions] = await Promise.all([
+    const now = new Date()
+    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000)
+    const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000)
+
+    const [
+      totalUsers, usersThisWeek, usersThisMonth,
+      totalQuestions, questionsByKind,
+      totalAnswers,
+      openFlags,
+      totalSparks,
+      recentQuestions,
+      recentUsers,
+      recentFlags,
+    ] = await Promise.all([
       User.countDocuments(periodFilter),
+      User.countDocuments({ ...periodFilter, created_at: { $gte: weekAgo } }),
+      User.countDocuments({ ...periodFilter, created_at: { $gte: monthAgo } }),
       Question.countDocuments(periodFilter),
+      Question.aggregate([
+        { $match: periodFilter },
+        { $group: { _id: '$kind', count: { $sum: 1 } } },
+      ]),
       Answer.countDocuments(periodFilter),
       Flag.countDocuments(openFlagFilter),
-      SparkTransaction.countDocuments(periodFilter),
+      SparkTransaction.aggregate([
+        { $match: { created_at: periodFilter.created_at || {} } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      Question.find(periodFilter)
+        .sort({ created_at: -1 })
+        .limit(5)
+        .select('question_id title kind status created_at author_id')
+        .lean(),
+      User.find(periodFilter)
+        .sort({ created_at: -1 })
+        .limit(5)
+        .select('user_id name email role status created_at')
+        .lean(),
+      Flag.find({ ...openFlagFilter })
+        .sort({ created_at: -1 })
+        .limit(5)
+        .lean(),
     ])
+
+    const sparkTotal = totalSparks[0]?.total ?? 0
+    const kindMap = Object.fromEntries(questionsByKind.map((k) => [k._id, k.count]))
 
     res.json({
       success: true,
-      metrics: { users, questions, answers, openFlags, sparkTransactions },
+      metrics: {
+        users: {
+          total: totalUsers,
+          thisWeek: usersThisWeek,
+          thisMonth: usersThisMonth,
+        },
+        questions: {
+          total: totalQuestions,
+          faq: kindMap.faq ?? 0,
+          community: kindMap.community ?? 0,
+        },
+        answers: { total: totalAnswers },
+        flags: { open: openFlags },
+        sparks: { total: sparkTotal },
+      },
+      recent: {
+        questions: recentQuestions,
+        users: recentUsers,
+        flags: recentFlags,
+      },
     })
   } catch (error) {
     next(error)
