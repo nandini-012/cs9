@@ -33,7 +33,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
+          <ProtectedRoute allowedRoles={['USER']}>
             <Dashboard />
           </ProtectedRoute>
         }
@@ -41,7 +41,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/raise-query"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
+          <ProtectedRoute allowedRoles={['USER']}>
             <RaiseQuery />
           </ProtectedRoute>
         }
@@ -49,7 +49,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/track-query"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
+          <ProtectedRoute allowedRoles={['USER']}>
             <TrackQuery />
           </ProtectedRoute>
         }
@@ -57,7 +57,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/profile"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
+          <ProtectedRoute allowedRoles={['USER']}>
             <ProfileSettingsView />
           </ProtectedRoute>
         }
@@ -65,7 +65,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/query/:id"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
+          <ProtectedRoute allowedRoles={['USER']}>
             <QueryDetailView />
           </ProtectedRoute>
         }
@@ -73,7 +73,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/student-dashboard"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
+          <ProtectedRoute allowedRoles={['USER']}>
             <StudentDashboard />
           </ProtectedRoute>
         }
@@ -81,7 +81,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/raise-query-view"
         element={
-          <ProtectedRoute allowedRoles={['student', 'admin', 'USER']}>
+          <ProtectedRoute allowedRoles={['USER']}>
             <RaiseQueryView />
           </ProtectedRoute>
         }
@@ -91,7 +91,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute allowedRoles={['admin']}>
+          <ProtectedRoute allowedRoles={['ADMIN']}>
             <AdminDashboard />
           </ProtectedRoute>
         }
@@ -99,7 +99,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/admin/review/:id"
         element={
-          <ProtectedRoute allowedRoles={['admin']}>
+          <ProtectedRoute allowedRoles={['ADMIN']}>
             <AdminQueryReview />
           </ProtectedRoute>
         }
@@ -107,7 +107,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/admin/faq"
         element={
-          <ProtectedRoute allowedRoles={['admin']}>
+          <ProtectedRoute allowedRoles={['ADMIN']}>
             <FAQManagementView />
           </ProtectedRoute>
         }
@@ -115,7 +115,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/admin/queries"
         element={
-          <ProtectedRoute allowedRoles={['admin']}>
+          <ProtectedRoute allowedRoles={['ADMIN']}>
             <QueriesManagementView />
           </ProtectedRoute>
         }
@@ -123,7 +123,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/admin/spurti"
         element={
-          <ProtectedRoute allowedRoles={['admin']}>
+          <ProtectedRoute allowedRoles={['ADMIN']}>
             <SpurtiManagementView />
           </ProtectedRoute>
         }
