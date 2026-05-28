@@ -36,7 +36,7 @@ const mockComments: Comment[] = [
   {
     id: 'c3',
     author: 'Vikram Singh',
-    role: 'Student',
+    role: 'USER',
     content: 'I successfully claimed my reimbursement last month. Just ensure you have all receipts in the correct format — the amounts should be in INR and the merchant name clearly visible.',
     timestamp: 'Jun 15, 2026 · 9:15 AM',
     isSolution: true,

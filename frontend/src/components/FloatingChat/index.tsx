@@ -36,7 +36,7 @@ export default function FloatingChat({ userEmail, apiBaseUrl = 'http://localhost
     const text = textToSend || input
     if (!text?.trim()) return
 
-    const userMsg = { sender: 'student', text }
+    const userMsg = { sender: 'USER', text }
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setIsLoading(true)
@@ -135,11 +135,11 @@ export default function FloatingChat({ userEmail, apiBaseUrl = 'http://localhost
         {/* Chat Log */}
         <div className="flex-1 overflow-y-auto px-4 py-3 bg-white/10 flex flex-col gap-2.5">
           {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.sender === 'student' ? 'justify-end' : 'justify-start'}`}>
+            <div key={i} className={`flex ${msg.sender === 'USER' ? 'justify-end' : 'justify-start'}`}>
               <div
                 className={`
                   max-w-[84%] px-3 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm
-                  ${msg.sender === 'student'
+                  ${msg.sender === 'USER'
                     ? 'bg-gradient-to-br from-accent to-[#884a22] text-white rounded-tr-sm shadow-[0_6px_18px_rgba(160,90,44,0.25)]'
                     : 'bg-white/55 text-slate-800 border border-white/60 rounded-tl-sm shadow-[0_4px_16px_rgba(0,0,0,0.02)]'
                   }
