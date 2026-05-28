@@ -10,24 +10,43 @@ import {
   paginationResult,
 } from '../utils/http.js'
 
+const SECTION_LABELS = {
+  '1': 'VINS Overview',
+  '2': 'Timeline & Start Dates',
+  '3': 'NOC & Onboarding',
+  '4': 'Selection & Offer',
+  '5': 'Internship Work',
+  '6': 'Communication',
+  '7': 'Interview Issues',
+  '8': 'Certificate & Completion',
+  '9': 'Rosetta Journal',
+  '10': 'Coursework & Exemptions',
+  '11': 'Platform & Login',
+  '12': 'ViBe Platform',
+  '13': 'Team Formation',
+}
+
 export async function listPublishedFAQs(req, res, next) {
   try {
     const faqs = await Question.find({
       kind: 'faq',
-      faq_status: 'published',
+      status: 'published',
     })
-      .sort({ category: 1, updated_at: -1 })
+      .sort({ category: 1, title: 1 })
       .lean()
 
     const grouped = {}
     for (const faq of faqs) {
-      const cat = faq.category || 'General'
-      if (!grouped[cat]) grouped[cat] = []
-      grouped[cat].push({
+      const raw = faq.category || 'General'
+      const major = raw.split('.')[0]
+      const label = SECTION_LABELS[major] || SECTION_LABELS[raw] || raw
+
+      if (!grouped[label]) grouped[label] = []
+      grouped[label].push({
         id: faq.question_id,
-        question: faq.question,
-        answer: faq.answer || '',
-        category: cat,
+        question: faq.title,
+        answer: faq.body,
+        category: label,
         tags: faq.tags || [],
         updatedAt: faq.updated_at,
       })
