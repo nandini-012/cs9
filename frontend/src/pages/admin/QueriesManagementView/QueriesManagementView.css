@@ -1,0 +1,489 @@
+.qm-container {
+  display: flex;
+  gap: 32px;
+  height: 100%;
+}
+
+.qm-inbox {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.qm-inbox-header {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.qm-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.qm-filter-btn {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+}
+
+.qm-filter-btn.active {
+  background: #0b1528;
+  color: #fff;
+  border-color: #0b1528;
+}
+
+.qm-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding-bottom: 24px;
+  padding-right: 8px;
+}
+
+.qm-card-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.qm-card-list::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.qm-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.qm-card.active {
+  border: 2px solid #0b1528;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.qm-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.qm-card-id {
+  font-size: 10px;
+  font-weight: 800;
+  color: #9ca3af;
+}
+
+.qm-card-time {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.qm-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.qm-card-excerpt {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.qm-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qm-card-badge {
+  background: #e5e7eb;
+  color: #111827;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.qm-card-author {
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.qm-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+}
+
+.qm-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.qm-thread-panel {
+  flex: 3;
+  overflow: hidden;
+}
+
+.qm-thread-header {
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.qm-thread-title h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.qm-thread-title p {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.qm-thread-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.qm-thread-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.qm-thread-btn:hover {
+  background: #f9fafb;
+}
+
+.qm-thread-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.qm-message {
+  display: flex;
+  gap: 16px;
+}
+
+.qm-msg-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.qm-msg-body {
+  flex: 1;
+}
+
+.qm-msg-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  align-items: flex-end;
+}
+
+.qm-msg-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.qm-msg-time {
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.qm-msg-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.qm-internal-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-left: 56px;
+}
+
+.qm-internal-note p {
+  font-size: 10px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.qm-resolution-panel {
+  flex: 2;
+  padding: 24px;
+}
+
+.qm-res-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+}
+
+.qm-res-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.qm-res-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.qm-label {
+  font-size: 13px;
+  color: #4b5563;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.qm-search-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.qm-search-wrap input {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.qm-faq-chip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.qm-promote-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-top: 16px;
+}
+
+.qm-promote-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.qm-textarea {
+  width: 100%;
+  flex: 1;
+  padding: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+  margin-top: 16px;
+}
+
+.qm-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.qm-res-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.qm-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0b1528;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+}
+
+.qm-btn-outline-danger {
+  padding: 12px 24px;
+  background: #fff;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.qm-btn-outline-danger:hover {
+  background: #fef2f2;
+}
+
+.qm-approval-popup {
+  position: absolute;
+  bottom: 110%;
+  right: 0;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  width: 240px;
+  z-index: 50;
+  border: 1px solid #e5e7eb;
+}
+
+.qm-approver {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.qm-approver.active {
+  background: #0b1528;
+  color: #fff;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.qm-approver.inactive {
+  background: transparent;
+  color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.qm-approver.inactive.no-border {
+  border-bottom: none;
+  margin-bottom: 12px;
+}
+
+.qm-approver-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #d1d5db;
+  flex-shrink: 0;
+}
+
+.qm-approver-info h5 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 2px 0;
+}
+
+.qm-approver-info p {
+  font-size: 10px;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.qm-approval-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: #0b1528;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.qm-approval-send-btn:hover {
+  background: #1e3a8a;
+}

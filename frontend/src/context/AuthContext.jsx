@@ -49,9 +49,9 @@ export function AuthProvider({ children }) {
 
   const refreshSession = useCallback(async () => {
     try {
-      const payload = await request("/auth/me");
-      setUser(payload.data?.user || null);
-      return payload.data?.user || null;
+      const payload = await request("/api/auth/me");
+      setUser(payload.user || null);
+      return payload.user || null;
     } catch (_error) {
       setUser(null);
       return null;
@@ -65,27 +65,27 @@ export function AuthProvider({ children }) {
   }, [refreshSession]);
 
   const login = useCallback(async ({ email, password }) => {
-    const payload = await request("/auth/login", {
+    const payload = await request("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
 
-    const loggedInUser = payload.data?.user || null;
+    const loggedInUser = payload.user || null;
     setUser(loggedInUser);
     return loggedInUser;
   }, []);
 
   const register = useCallback(async ({ name, email, password, role }) => {
-    const payload = await request("/auth/register", {
+    const payload = await request("/api/auth/signup", {
       method: "POST",
       body: JSON.stringify({ name, email, password, role }),
     });
 
-    return payload.data?.user || null;
+    return payload.user || null;
   }, []);
 
   const logout = useCallback(async () => {
-    await request("/auth/logout", { method: "POST" });
+    await request("/api/auth/logout", { method: "POST" });
     setUser(null);
   }, []);
 
