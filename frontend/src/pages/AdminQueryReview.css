@@ -1,0 +1,67 @@
+.review-container {
+  padding-top: 40px;
+}
+
+.review-header {
+  margin-bottom: 30px;
+}
+
+.review-header h2 {
+  margin-top: 20px;
+  font-size: 2rem;
+}
+
+.review-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+}
+
+.info-group {
+  margin-top: 20px;
+}
+
+.info-group label {
+  color: var(--text-secondary);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.info-group p {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 16px;
+  border-radius: 8px;
+  line-height: 1.6;
+}
+
+.admin-actions {
+  padding: 30px;
+}
+
+.admin-actions textarea {
+  width: 100%;
+  padding: 16px;
+  margin-top: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: inherit;
+  resize: vertical;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-secondary.danger {
+  color: var(--status-danger);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-secondary.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--status-danger);
+}
