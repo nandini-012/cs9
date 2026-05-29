@@ -1,46 +1,56 @@
-# QuestionCard
+# QuestionCard (`pages/user/components/QuestionCard/`)
 
-Reusable question/query card component for the student dashboard.
+Displays a single question as a card with upvote, tags, meta, and action buttons.
 
-## Props
-
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `query` | `object` | ✅ | Normalized question object from `normalizeQuestion()` |
-| `onUpvote` | `function` | ✅ | Callback receiving `questionId` on upvote click |
-
-## `query` Shape
+## Types
 
 ```ts
-{
-  id:         string        // question_id
-  upvotes:    number
+export interface QuestionTag {
+  label: string
+  type: 'dark'
+}
+
+export interface NormalizedQuestion {
+  id: string
+  upvotes: number
   hasUpvoted: boolean
-  tags:       Array<{ label: string }>
-  meta:       string        // e.g. "2h ago • Category Name"
-  title:      string
-  desc:       string        // body text
-  comments:   number        // answer count
-  status:     'Active' | 'In Progress' | 'Resolved'
+  author: 'self' | 'other'
+  authorName: string
+  timestamp: number
+  tags: QuestionTag[]
+  meta: string           // e.g. "2 hours ago"
+  title: string
+  desc: string           // raw HTML (rendered with dangerouslySetInnerHTML)
+  comments: number
+  status: 'Active' | 'In Progress' | 'Resolved' | 'Closed'
+}
+
+interface QuestionCardProps {
+  query: NormalizedQuestion
+  onUpvote: (id: string) => void
+  onClick?: (id: string) => void
 }
 ```
 
-## Visual Structure
+`NormalizedQuestion` is produced by `normalizeQuestion()` in `pages/user/service.js`.
 
-- **Upvote button** (left) — tall vertical pill with chevron icon and count; background turns `#8c6a40` when upvoted, `#d1d5db` when not
-- **Content** (right):
-  - **Tags** — black (`bg-black text-white`) rounded pills
-  - **Meta** — timestamp/category on top right
-  - **Title** — 18px semibold
-  - **Description** — 13px, gray
-  - **Footer** — comment count (navigates to detail) + status badge with color from `STATUS_CONFIG`
+## Features
+
+- **Upvote button** — styled pill with count, toggles between `#8c6a40` (active) and `#d1d5db` (inactive)
+- **Tags** — up to 2, black chips, capitalized
+- **Author + time** — right-aligned meta line
+- **Reply / View** — "View" for resolved questions (`status === 'Resolved'`), "Reply" otherwise
+- **Report** — stub, calls `notifyError("Report doesn't supported yet.")`
+- **Status badge** — colored icon + label (`Active`, `In Progress`, `Resolved`, `Closed`)
 
 ## Usage
 
-```jsx
-import QuestionCard from '../../components/QuestionCard/QuestionCard'
+```tsx
+import QuestionCard from '../../../../pages/user/components/QuestionCard/QuestionCard'
 
-{filtered.map(query => (
-  <QuestionCard key={query.id} query={query} onUpvote={handleUpvote} />
-))}
+<QuestionCard
+  query={normalizeQuestion(q, currentUserId)}
+  onUpvote={handleUpvote}
+  onClick={handleCardClick}
+/>
 ```

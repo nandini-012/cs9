@@ -1,16 +1,28 @@
+import type { FC } from 'react'
 import { useState } from 'react'
 import Modal from '../../../../components/Modal/Modal'
 import Button from '../../../../components/Button/Button'
 import Select from '../../../../components/Select/Select'
+
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 const REASONS = [
   { value: 'inappropriate', label: 'Inappropriate content' },
   { value: 'incorrect',     label: 'Incorrect information' },
   { value: 'spam',          label: 'Spam' },
   { value: 'other',         label: 'Other' },
-]
+] as const
 
-function ReportModal({ open, onClose, onSubmit, submitting }) {
+interface ReportModalProps {
+  open: boolean
+  onClose: () => void
+  onSubmit: (payload: { reason: string; description: string }) => void
+  submitting: boolean
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
+const ReportModal: FC<ReportModalProps> = ({ open, onClose, onSubmit, submitting }) => {
   const [reason, setReason]   = useState('')
   const [details, setDetails] = useState('')
 
@@ -22,7 +34,7 @@ function ReportModal({ open, onClose, onSubmit, submitting }) {
     <Modal isOpen={open} onClose={onClose} position="center" title="Report Content">
       {/* Reason dropdown */}
       <Select
-        options={REASONS}
+        options={[...REASONS]}
         value={reason}
         onChange={setReason}
         placeholder="Select a reason"
