@@ -7,6 +7,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "seed:admin": "node src/scripts/seed-admin.js",
+    "recompute:reputation": "node src/scripts/recompute-reputation.js",
     "test": "node --test"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
     "helmet": "^8.2.0",
     "mongodb": "^7.2.0",
     "mongoose": "^9.6.2",
+    "node-cron": "^4.2.1",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"
   },

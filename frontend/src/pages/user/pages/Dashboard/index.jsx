@@ -7,6 +7,7 @@ import SearchModal from '../../components/SearchModal/SearchModal'
 import Button from '../../../../components/Button/Button'
 import { fetchQuestions, fetchQuestionTags, fetchUserContributions, voteQuestion, normalizeQuestion } from '../../service'
 import { queryClient } from '../../../../lib/queryClient'
+import { notifyError } from '../../../../lib/notify'
 
 function DashboardPage() {
   const navigate = useNavigate()
@@ -85,7 +86,8 @@ function DashboardPage() {
     try {
       const result = await voteQuestion(id)
       setQueries(qs => qs.map(q => q.id === id ? { ...q, upvotes: result.upvotes, hasUpvoted: result.hasVoted } : q))
-    } catch {
+    } catch (err) {
+      // Roll back the optimistic update and surface the reason
       setQueries(qs =>
         qs.map(q =>
           q.id === id
@@ -93,6 +95,7 @@ function DashboardPage() {
             : q,
         ),
       )
+      notifyError(err.response?.data?.message || 'Could not register your vote.')
     }
   }
 

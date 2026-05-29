@@ -64,9 +64,13 @@ function UserLayout() {
         <LeftPane
           isCollapsed={isLeftPaneCollapsed}
           onToggleCollapse={() => setIsLeftPaneCollapsed(v => !v)}
-          sidebarNav={sidebarNav}
+          sidebarNav={location.pathname === '/leaderboard' ? 'Leaderboard' : sidebarNav}
           currentView={currentView}
           onNavigate={label => {
+            if (label === 'Leaderboard') {
+              navigate('/leaderboard')
+              return
+            }
             setSidebarNav(label)
             setCurrentView('dashboard')
             // Clear cached questions so the dashboard refetches and Similar Queries resets

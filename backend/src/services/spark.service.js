@@ -1,5 +1,6 @@
 import SparkTransaction from '../models/spark-transaction.model.js'
 import User from '../models/user.model.js'
+import UserProfile from '../models/user-profile.model.js'
 import { createHttpError } from '../utils/http.js'
 
 export const SPARK_POINTS = {
@@ -12,6 +13,14 @@ export const SPARK_POINTS = {
   EXPERT_VERIFIED: 20,
   QUESTION_BOUNTY: null,   // negative, set dynamically in reserveBounty
   BOUNTY_AWARDED: null,    // positive, set dynamically from question.spark_bounty
+}
+
+// Reputation = a trust/quality signal (distinct from spark engagement points).
+// Only quality-signal actions move it. Used by the leaderboard + profile.
+export const REPUTATION_POINTS = {
+  ANSWER_UPVOTED: 10,
+  ANSWER_ACCEPTED: 15,
+  EXPERT_VERIFIED: 50,
 }
 
 export async function awardSpark({
@@ -34,6 +43,17 @@ export async function awardSpark({
   })
 
   await User.updateOne({ user_id: userId }, { $inc: { spark_points: points } })
+
+  // Bump reputation for trust-signal actions (kept in sync on the profile)
+  const repGain = REPUTATION_POINTS[action]
+  if (repGain) {
+    await UserProfile.updateOne(
+      { user_id: userId },
+      { $inc: { reputation: repGain }, $setOnInsert: { user_id: userId } },
+      { upsert: true },
+    )
+  }
+
   return transaction
 }
 

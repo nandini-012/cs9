@@ -124,6 +124,12 @@ const questionSchema = new mongoose.Schema(
     },
     upvoted_by: [String],
 
+    assigned_to: {
+      type: String,
+      default: null,
+      index: true,
+    },
+
     view_count: {
       type: Number,
       default: 0,

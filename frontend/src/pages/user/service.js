@@ -123,6 +123,14 @@ export async function reportContent({ targetType, targetId, reason, description 
   return data
 }
 
+// ─── Leaderboard ───────────────────────────────────────────────────────────────
+
+export async function fetchLeaderboard({ type = 'spark', limit = 20 } = {}) {
+  const params = new URLSearchParams({ type, limit })
+  const { data } = await axisPrivate().get(`/api/leaderboard?${params}`)
+  return data.leaderboard || [] // [{ userId, displayName, score }]
+}
+
 // ─── Notifications ───────────────────────────────────────────────────────────
 
 export async function fetchNotifications() {
