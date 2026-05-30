@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import DashboardHeader from './components/Header/DashboardHeader'
 import LeftPane from './components/LeftPane/LeftPane'
 import Footer from '../../components/Footer/Footer'
+import NotificationSidebar from './components/NotifSidebar/NotificationSidebar'
 import useAuthStore from '../../store/useAuthStore'
 import useThemeStore from '../../store/useThemeStore'
 import { queryClient } from '../../lib/queryClient'
@@ -21,6 +22,7 @@ function UserLayout() {
   const [currentView, setCurrentView]     = useState('dashboard')
   const [sidebarNav, setSidebarNav]        = useState('Dashboard')
   const [searchModalOpen, setSearchModalOpen] = useState(false)
+  const [notifSidebarOpen, setNotifSidebarOpen] = useState(false)
 
   const initials = user?.name
     ? user.name.trim().split(/\s+/).map(n => n[0]).slice(0, 2).join('').toUpperCase()
@@ -53,6 +55,18 @@ function UserLayout() {
         setNotifications(ns => ns.map(n => ({ ...n, is_read: true })))
       } catch { /* silent */ }
     }
+  }
+
+  function handleNotifViewAll() {
+    setNotifSidebarOpen(true)
+  }
+
+  async function handleMarkAllNotifRead() {
+    try {
+      await markAllNotifRead()
+      setUnreadCount(0)
+      setNotifications(ns => ns.map(n => ({ ...n, is_read: true })))
+    } catch { /* silent */ }
   }
 
   return (
@@ -93,6 +107,7 @@ function UserLayout() {
             onSearchOpen={() => setSearchModalOpen(true)}
             onRaiseQuery={() => navigate('/raise-query')}
             onNotifOpen={handleNotifOpen}
+            onNotifViewAll={handleNotifViewAll}
             onDarkToggle={toggleDark}
             onProfileSettings={() => navigate('/profile')}
             onLogout={handleLogout}
@@ -116,6 +131,14 @@ function UserLayout() {
 
       {/* Footer — full width, outside content area */}
       <Footer />
+
+      {/* Notification sidebar */}
+      <NotificationSidebar
+        isOpen={notifSidebarOpen}
+        onClose={() => setNotifSidebarOpen(false)}
+        notifications={notifications}
+        onMarkAllRead={handleMarkAllNotifRead}
+      />
     </div>
   )
 }
