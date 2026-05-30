@@ -44,7 +44,7 @@ function Footer() {
 			</div>
 			<div className="mx-auto max-w-[1200px] border-t border-[#c4c7c7]/30 px-4 py-6 text-center sm:px-4">
 				<p className="text-[12px] leading-6 text-[#444748]">
-					© 2026 — Vicharanashala Lab for Education of Design (VLED), Indian Institute of Technology Ropar. All rights reserved.
+					© 2026 — {__PROJECT_OWNER__ || 'Vicharanashala Lab for Education of Design (VLED), Indian Institute of Technology Ropar'}. All rights reserved.
 				</p>
 			</div>
 		</footer>

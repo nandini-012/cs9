@@ -1,3 +1,4 @@
+/* global __PROJECT_NAME__, __PROJECT_TAGLINE__ */
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
@@ -251,10 +252,10 @@ function Landing() {
             className="flex flex-col"
           >
             <span className="font-display text-[18px] font-bold leading-tight text-[#0f172a] sm:text-[22px]">
-              Vicharanashala
+              {__PROJECT_NAME__}
             </span>
             <span className="text-[10px] font-bold uppercase tracking-widest text-[#444748]">
-              Lab Internship Hub
+              {__PROJECT_TAGLINE__}
             </span>
           </a>
           <Button variant="secondary" className="text-[10px] bg-[#8c6a40]/80 text-white" onClick={handleHeaderButtonClick}>

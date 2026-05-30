@@ -1,3 +1,4 @@
+/* global __PROJECT_NAME__, __PROJECT_TAGLINE__ */
 import { Zap, LayoutGrid, MessageSquare, PanelLeftClose, Settings, User } from 'lucide-react'
 
 const navItems = [
@@ -15,11 +16,11 @@ function AdminLeftPane({ currentView, onNavigate }) {
         className="flex flex-col px-6 pb-6 text-left"
         onClick={() => onNavigate('dashboard')}
       >
-        <h2 className="font-display text-[18px] font-bold leading-tight text-[#0f172a]">
-          Vicharanashala
+        <h2 className="font-display text-[13px] font-medium leading-tight text-[#8c6a40]">
+          {__PROJECT_NAME__ || 'Vicharanashala'}
         </h2>
         <p className="text-[10px] font-bold uppercase tracking-widest text-[#444748]">
-          Lab Internship Hub
+          {__PROJECT_TAGLINE__ || 'Lab Internship Hub'}
         </p>
       </button>
 
@@ -39,11 +40,10 @@ function AdminLeftPane({ currentView, onNavigate }) {
               key={id}
               type="button"
               onClick={() => onNavigate(id)}
-              className={`flex min-h-10 w-full items-center gap-3 rounded-r-lg px-3 py-2 text-left text-[14px] transition ${
-                isActive
+              className={`flex min-h-10 w-full items-center gap-3 rounded-r-lg px-3 py-2 text-left text-[14px] transition ${isActive
                   ? 'border-r-2 border-[#8c6a40] bg-[#8c6a40]/10 font-semibold text-[#8c6a40]'
                   : 'text-[#444748] hover:bg-[#8c6a40]/10 hover:text-[#8c6a40]'
-              }`}
+                }`}
             >
               <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
               <span>{label}</span>
