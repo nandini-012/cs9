@@ -35,6 +35,13 @@ function UserLayout() {
     ? user.name.trim().split(/\s+/).map(n => n[0]).slice(0, 2).join('').toUpperCase()
     : 'U'
 
+  const activeSidebarNav = (() => {
+    if (location.pathname === '/leaderboard') return 'Leaderboard'
+    if (location.pathname === '/dashboard') return sidebarNav === 'My Queries' ? 'My Queries' : 'Dashboard'
+    if (location.pathname === '/raise-query' || location.pathname.startsWith('/query/')) return 'My Queries'
+    return ''
+  })()
+
   useEffect(() => {
     fetchNotifications()
       .then(data => {
@@ -93,8 +100,7 @@ function UserLayout() {
         <LeftPane
           isCollapsed={isLeftPaneCollapsed}
           onToggleCollapse={() => setIsLeftPaneCollapsed(v => !v)}
-          sidebarNav={location.pathname === '/leaderboard' ? 'Leaderboard' : sidebarNav}
-          currentView={currentView}
+          activeNav={activeSidebarNav}
           onNavigate={label => {
             if (label === 'Leaderboard') {
               navigate('/leaderboard')
