@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  MessageSquare, ChevronUp, Eye, Zap, Tag, Pin, Lock, CheckCircle,
-  Clock, User, ChevronLeft, ChevronRight, Loader,
+  MessageSquare, ChevronUp, Zap, Tag, Pin, Lock, CheckCircle,
+  Clock, User, ChevronLeft, ChevronRight, Loader, VenetianMask,
 } from 'lucide-react'
 import { fetchAdminQuestions } from '../../service'
 
@@ -38,7 +38,7 @@ function formatDate(value) {
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function QueriesManagementView({ searchQuery = '' }) {
+function QueriesManagementView({ searchQuery = '', onOpenQuery }) {
   const [items, setItems]         = useState([])
   const [pagination, setPagination] = useState({ page: 1, pages: 0, total: 0 })
   const [loading, setLoading]     = useState(true)
@@ -102,11 +102,12 @@ function QueriesManagementView({ searchQuery = '' }) {
           <div className="flex flex-col gap-3">
             {items.map((q) => {
               const author = q.is_anonymous ? 'Anonymous' : (q.author_name || q.author_id?.slice(0, 8) || 'Unknown')
-              const preview = q.body_plain?.trim() || stripHtml(q.body)
+              const preview = stripHtml(q.body)
               return (
                 <article
                   key={q.question_id}
-                  className="rounded-xl border border-border-light bg-bg-card p-5 shadow-sm transition hover:border-brand"
+                  onClick={() => onOpenQuery?.(q.question_id)}
+                  className="cursor-pointer rounded-xl border border-border-light bg-bg-card p-5 shadow-sm transition hover:border-brand hover:shadow-md"
                 >
                   {/* Top row: id + badges */}
                   <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -119,6 +120,11 @@ function QueriesManagementView({ searchQuery = '' }) {
                     <span className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${statusClass(q.status)}`}>
                       {q.status}
                     </span>
+                    {q.is_anonymous && (
+                      <span className="flex items-center gap-1 rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase text-indigo-700">
+                        <VenetianMask className="h-3 w-3" strokeWidth={2.2} /> Anonymous
+                      </span>
+                    )}
                     {q.moderation_status && q.moderation_status !== 'approved' && (
                       <span className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${MOD_STYLE[q.moderation_status] || 'bg-gray-100 text-gray-600'}`}>
                         {q.moderation_status}
@@ -168,12 +174,12 @@ function QueriesManagementView({ searchQuery = '' }) {
                     <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" strokeWidth={1.8} /> {author}</span>
                     <span className="flex items-center gap-1"><ChevronUp className="h-3.5 w-3.5" strokeWidth={1.8} /> {q.upvotes ?? 0} upvotes</span>
                     <span className="flex items-center gap-1"><MessageSquare className="h-3.5 w-3.5" strokeWidth={1.8} /> {q.answer_count ?? 0} answers</span>
-                    <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" strokeWidth={1.8} /> {q.view_count ?? 0} views</span>
                     {q.assigned_to && (
                       <span className="flex items-center gap-1 text-brand">Assigned: {q.assigned_to.slice(0, 8)}</span>
                     )}
                     <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" strokeWidth={1.8} /> {formatDate(q.created_at)}</span>
-                    {q.last_activity_at && q.last_activity_at !== q.created_at && (
+                    {/* Only show "active" when it lands on a different day than created */}
+                    {formatDate(q.last_activity_at) !== formatDate(q.created_at) && (
                       <span className="text-text-muted">· active {formatDate(q.last_activity_at)}</span>
                     )}
                   </div>

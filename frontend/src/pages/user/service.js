@@ -85,7 +85,7 @@ export async function fetchQuestionTags() {
 }
 
 export async function createQuestion({ title, body, tags = [], isAnonymous = false }) {
-  const { data } = await axisPrivate().post('/api/questions', { title, body, tags, isAnonymous })
+  const { data } = await axisPrivate().post('/api/questions', { title, body, tags, is_anonymous: isAnonymous })
   return data // { success, questionId }
 }
 

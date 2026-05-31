@@ -4,7 +4,7 @@ import {
   ClipboardList,
   Clock,
   Download,
-  Filter,
+  ShieldAlert,
   MessageSquare,
   RefreshCw,
   TrendingDown,
@@ -22,24 +22,16 @@ import {
 } from 'recharts'
 import Button from '../../../../components/Button/Button'
 
-// Placeholder until GET /api/admin/dashboard returns metrics.charts.categories.
-// Expected shape: [{ category: string, new: number, resolved: number }]
-const PLACEHOLDER_CATEGORIES = [
-  { category: 'Academic', new: 66, resolved: 42 },
-  { category: 'NOC', new: 48, resolved: 72 },
-  { category: 'VIBE', new: 82, resolved: 54 },
-  { category: 'Stipend', new: 40, resolved: 62 },
-  { category: 'Offer', new: 76, resolved: 88 },
-  { category: 'Other', new: 58, resolved: 36 },
-]
-
 function formatNumber(value) {
   return new Intl.NumberFormat('en-IN').format(value || 0)
 }
 
-function MetricCard({ title, value, Icon, iconClassName, trend, trendType = 'up', badge }) {
+function MetricCard({ title, value, Icon, iconClassName, trend, trendType = 'up', badge, onClick }) {
   return (
-    <div className="rounded-lg border border-border-light bg-bg-card p-5 shadow-sm">
+    <div
+      onClick={onClick}
+      className={`rounded-lg border border-border-light bg-bg-card p-5 shadow-sm ${onClick ? 'cursor-pointer transition hover:border-brand hover:shadow-md' : ''}`}
+    >
       <div className="mb-5 flex items-start justify-between">
         <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconClassName}`}>
           <Icon className="h-5 w-5" strokeWidth={1.8} />
@@ -92,7 +84,7 @@ function ActivityItem({ icon: Icon, title, meta, tone = 'neutral' }) {
   )
 }
 
-function DashboardView({ dashboardData, isLoading, onRefresh }) {
+function DashboardView({ dashboardData, isLoading, onRefresh, onNavigate }) {
   const metrics = dashboardData?.metrics || {}
   const recent = dashboardData?.recent || {}
   const questionMetrics = metrics.questions || {}
@@ -101,10 +93,7 @@ function DashboardView({ dashboardData, isLoading, onRefresh }) {
   const recentQuestions = recent.questions || []
   const recentUsers = recent.users || []
   const recentFlags = recent.flags || []
-  // Real data once the backend aggregation exists; placeholder until then.
-  const categoryData = dashboardData?.charts?.categories?.length
-    ? dashboardData.charts.categories
-    : PLACEHOLDER_CATEGORIES
+  const categoryData = dashboardData?.charts?.categories || []
   const attentionRows = recentFlags.slice(0, 5)
   const activityItems = [
     ...recentQuestions.slice(0, 2).map((question) => ({
@@ -165,6 +154,7 @@ function DashboardView({ dashboardData, isLoading, onRefresh }) {
           Icon={ClipboardList}
           iconClassName="bg-blue-50 text-blue-700"
           trend={`${formatNumber(questionMetrics.total)} total`}
+          onClick={() => onNavigate('queriesManagement')}
         />
         <MetricCard
           title="FAQ Entries"
@@ -172,6 +162,7 @@ function DashboardView({ dashboardData, isLoading, onRefresh }) {
           Icon={CheckCircle}
           iconClassName="bg-amber-50 text-amber-700"
           trend="Published"
+          onClick={() => onNavigate('faqManagement')}
         />
         <MetricCard
           title="Answers"
@@ -187,6 +178,7 @@ function DashboardView({ dashboardData, isLoading, onRefresh }) {
           Icon={AlertCircle}
           iconClassName="bg-red-50 text-red-600"
           badge={flagsMetrics.open > 0 ? 'URGENT' : 'CLEAR'}
+          onClick={onNavigate ? () => onNavigate('flagModeration') : undefined}
         />
       </div>
 
@@ -265,10 +257,11 @@ function DashboardView({ dashboardData, isLoading, onRefresh }) {
           </div>
           <button
             type="button"
-            className="flex items-center gap-2 text-[12px] font-semibold text-text-muted transition hover:text-text-primary"
+            onClick={() => onNavigate?.('flagModeration')}
+            className="flex items-center gap-2 text-[12px] font-semibold text-brand transition hover:text-brand-hover"
           >
-            <Filter className="h-4 w-4" strokeWidth={1.8} />
-            Filter
+            <ShieldAlert className="h-4 w-4" strokeWidth={1.8} />
+            Review flags
           </button>
         </div>
 

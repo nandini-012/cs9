@@ -7,7 +7,10 @@ const tagSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
-      lowercase: true,
+    },
+    displayName: {
+      type: String,
+      default: '',
     },
     description: {
       type: String,
@@ -22,6 +25,5 @@ const tagSchema = new mongoose.Schema(
 )
 
 tagSchema.index({ questionCount: -1 })
-tagSchema.index({ name: 1 })
 
 export default mongoose.model('Tag', tagSchema)

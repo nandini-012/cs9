@@ -55,6 +55,7 @@ export async function getAdminDashboard(req, res, next) {
       recentQuestions,
       recentUsers,
       recentFlags,
+      tagStats,
     ] = await Promise.all([
       User.countDocuments(periodFilter),
       User.countDocuments({ ...periodFilter, created_at: { $gte: weekAgo } }),
@@ -84,6 +85,27 @@ export async function getAdminDashboard(req, res, next) {
         .sort({ created_at: -1 })
         .limit(5)
         .lean(),
+      Question.aggregate([
+        { $match: { ...periodFilter, tags: { $exists: true, $ne: [] } } },
+        { $unwind: { path: '$tags', preserveNullAndEmptyArrays: false } },
+        {
+          $group: {
+            _id: '$tags',
+            total: { $sum: 1 },
+            resolved: {
+              $sum: {
+                $cond: [
+                  { $in: ['$status', ['closed', 'archived', 'removed']] },
+                  1, 0,
+                ],
+              },
+            },
+          },
+        },
+        { $project: { _id: 0, category: { $capitalize: '$_id' }, total: 1, new: { $subtract: ['$total', '$resolved'] }, resolved: 1 } },
+        { $sort: { total: -1 } },
+        { $limit: 10 },
+      ]),
     ])
 
     const sparkTotal = totalSparks[0]?.total ?? 0
@@ -110,6 +132,9 @@ export async function getAdminDashboard(req, res, next) {
         questions: recentQuestions,
         users: recentUsers,
         flags: recentFlags,
+      },
+      charts: {
+        categories: tagStats,
       },
     })
   } catch (error) {
@@ -343,7 +368,8 @@ export async function createTag(req, res, next) {
     if (existing) {
       throw createHttpError(409, 'Tag already exists')
     }
-    const tag = await Tag.create({ name: normalized, description: description.trim() })
+    const displayName = normalized.charAt(0).toUpperCase() + normalized.slice(1)
+    const tag = await Tag.create({ name: normalized, displayName, description: description.trim() })
     res.status(201).json({ success: true, tag })
   } catch (error) {
     next(error)
@@ -382,7 +408,8 @@ export async function renameTag(req, res, next) {
     )
     // Recompute questionCount on the tag doc
     const newCount = await Question.countDocuments({ tags: normalized })
-    await Tag.updateOne({ name: tagName }, { name: normalized, questionCount: newCount })
+    const newDisplayName = normalized.charAt(0).toUpperCase() + normalized.slice(1)
+    await Tag.updateOne({ name: tagName }, { name: normalized, displayName: newDisplayName, questionCount: newCount })
     const updated = await Tag.findOne({ name: normalized })
     res.json({ success: true, tag: updated })
   } catch (error) {
@@ -404,6 +431,69 @@ export async function deleteTag(req, res, next) {
     )
     await tag.deleteOne()
     res.json({ success: true, removed: tagName })
+  } catch (error) {
+    next(error)
+  }
+}
+
+/**
+ * Post an admin response on a question and resolve it immediately. The answer is
+ * authored by the acting admin but stamped `author_role: 'ADMIN'`, so the thread
+ * shows "ADMIN" regardless of which admin posted it (their identity is not shown).
+ */
+export async function adminCommentAndResolve(req, res, next) {
+  try {
+    const body = typeof req.body.body === 'string' ? req.body.body.trim() : ''
+
+    if (!body) {
+      throw createHttpError(400, 'Comment body is required')
+    }
+
+    const question = await Question.findOne({ question_id: req.params.questionId })
+
+    if (!question || question.status === 'removed') {
+      throw createHttpError(404, 'Question not found')
+    }
+
+    const answer = await Answer.create({
+      question_id: question.question_id,
+      author_id: req.user.userId,
+      author_role: 'ADMIN',
+      body,
+      is_expert: true,
+      is_official: true,
+    })
+
+    // Resolve immediately (mirrors acceptAnswer/resolveQuestion: status → closed).
+    await Question.updateOne(
+      { question_id: question.question_id },
+      {
+        $inc: { answer_count: 1 },
+        $set: {
+          status: 'closed',
+          has_expert_answer: true,
+          last_activity_at: new Date(),
+        },
+      },
+    )
+
+    if (question.author_id !== req.user.userId) {
+      await Notification.create({
+        recipient_id: question.author_id,
+        actor_id: req.user.userId,
+        type: 'answer',
+        title: 'An admin resolved your question',
+        body: `Your question "${question.title}" was answered and resolved by an admin.`,
+        reference_id: question.question_id,
+        reference_type: 'question',
+      })
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Comment posted and question resolved',
+      answerId: answer.answer_id,
+    })
   } catch (error) {
     next(error)
   }

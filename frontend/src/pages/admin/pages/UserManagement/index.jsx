@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   Users, Search, ShieldCheck, ChevronLeft, ChevronRight, Loader,
-  Check, Zap, Mail, Calendar, UserCog, Plus,
+  Check, Zap, Mail, Calendar, UserCog, Plus, CornerDownLeft, Filter,
 } from 'lucide-react'
 import Modal from '../../../../components/Modal/Modal'
 import Button from '../../../../components/Button/Button'
-import Input from '../../../../components/Input/Input'
 import { notifyError, notifySuccess } from '../../../../lib/notify'
 import { fetchUsers, assignUserRole, removeUserRole, updateUserStatus, createUser } from '../../service'
 
@@ -50,6 +49,7 @@ function UserManagementView() {
   const [search, setSearch]         = useState('')
   const [roleFilter, setRoleFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   // Modal state
   const [managing, setManaging]     = useState(null)   // user being managed, or null
@@ -194,33 +194,65 @@ function UserManagementView() {
       </div>
 
       {/* Filters */}
-      <div className="mb-5 flex flex-wrap items-center gap-3">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" strokeWidth={1.8} />
-          <input
-            type="text"
-            value={searchInput}
-            onChange={e => setSearchInput(e.target.value)}
-            placeholder="Search name or email…"
-            className="w-60 rounded-lg border border-border bg-bg-card py-2 pl-8 pr-3 text-[12px] text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none"
-          />
+      <div className="mb-5">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" strokeWidth={1.8} />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+              placeholder="Search name or email…"
+              className="w-full rounded-lg border border-border bg-bg-card py-2.5 pl-10 pr-3 text-[13px] text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(o => !o)}
+            aria-label="Toggle filters"
+            aria-pressed={filtersOpen}
+            className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition ${
+              filtersOpen || roleFilter || statusFilter
+                ? 'border-brand text-brand'
+                : 'border-border text-text-muted hover:border-brand hover:text-brand'
+            }`}
+          >
+            <Filter className="h-4 w-4" strokeWidth={1.8} />
+            {(roleFilter || statusFilter) && (
+              <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-bg-primary bg-brand" />
+            )}
+          </button>
         </div>
-        <select
-          value={roleFilter}
-          onChange={e => setRoleFilter(e.target.value)}
-          className="rounded-lg border border-border bg-bg-card px-3 py-2 text-[12px] text-text-primary focus:border-brand focus:outline-none"
-        >
-          <option value="">All roles</option>
-          {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-        </select>
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-border bg-bg-card px-3 py-2 text-[12px] capitalize text-text-primary focus:border-brand focus:outline-none"
-        >
-          <option value="">All statuses</option>
-          {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
+
+        {filtersOpen && (
+          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-border-light bg-bg-card p-3">
+            <select
+              value={roleFilter}
+              onChange={e => setRoleFilter(e.target.value)}
+              className="rounded-lg border border-border bg-bg-card px-3 py-2 text-[12px] text-text-primary focus:border-brand focus:outline-none"
+            >
+              <option value="">All roles</option>
+              {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="rounded-lg border border-border bg-bg-card px-3 py-2 text-[12px] capitalize text-text-primary focus:border-brand focus:outline-none"
+            >
+              <option value="">All statuses</option>
+              {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            {(roleFilter || statusFilter) && (
+              <button
+                type="button"
+                onClick={() => { setRoleFilter(''); setStatusFilter('') }}
+                className="text-[12px] font-semibold text-text-muted transition hover:text-text-primary"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -304,86 +336,103 @@ function UserManagementView() {
       )}
 
       {/* Manage modal */}
-      <Modal isOpen={!!managing} onClose={() => setManaging(null)} title="Manage user" panelClassName="sm:p-8">
+      <Modal isOpen={!!managing} onClose={() => setManaging(null)} title="Manage user" panelClassName="!max-w-md !rounded-xl !p-0 overflow-hidden">
         {managing && (
-          <div>
-            <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-[14px] font-bold text-white">
+          <>
+            {/* Identity */}
+            <div className="flex items-center gap-3 border-b border-border-light px-7 pb-5 pt-7">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-[13px] font-bold text-white">
                 {initialsOf(managing.name)}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-[16px] font-bold text-text-primary">{managing.name}</p>
+                <p className="truncate text-[15px] font-semibold text-text-primary">{managing.name}</p>
                 <p className="truncate text-[12px] text-text-muted">{managing.email}</p>
               </div>
             </div>
 
-            {/* Roles */}
-            <div className="mb-6">
-              <p className="mb-2 flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-wide text-text-muted">
-                <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.8} /> Roles / Badges
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {ROLES.map(role => {
-                  const has = managing.roles?.includes(role)
-                  return (
+            <div className="space-y-6 px-7 py-6">
+              {/* Roles */}
+              <div>
+                <p className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-text-muted">Roles</p>
+                <div className="flex flex-wrap gap-2">
+                  {ROLES.map(role => {
+                    const has = managing.roles?.includes(role)
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => toggleRole(role)}
+                        disabled={busyRole === role}
+                        className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition disabled:opacity-50 ${
+                          has
+                            ? 'bg-brand text-white'
+                            : 'bg-bg-tertiary text-text-secondary hover:text-text-primary'
+                        }`}
+                      >
+                        {busyRole === role
+                          ? <Loader className="h-3 w-3 animate-spin" />
+                          : has && <Check className="h-3 w-3" strokeWidth={3} />}
+                        {role}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Status */}
+              <div>
+                <div className="mb-2.5 flex items-center justify-between">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-text-muted">Status</p>
+                  {statusDraft !== (managing.status || 'active') && (
                     <button
-                      key={role}
                       type="button"
-                      onClick={() => toggleRole(role)}
-                      disabled={busyRole === role}
-                      className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-semibold transition disabled:opacity-50 ${
-                        has
-                          ? 'border-brand bg-brand text-white'
-                          : 'border-border bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
+                      onClick={applyStatus}
+                      disabled={busyStatus}
+                      className="text-[11px] font-semibold text-brand transition hover:text-brand-hover disabled:opacity-50"
+                    >
+                      {busyStatus ? 'Saving…' : 'Save'}
+                    </button>
+                  )}
+                </div>
+                <div className="flex gap-1.5">
+                  {STATUSES.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setStatusDraft(s)}
+                      className={`flex-1 rounded-lg py-2 text-[12px] font-semibold capitalize transition ${
+                        statusDraft === s
+                          ? 'bg-brand/10 text-brand'
+                          : 'bg-bg-tertiary text-text-muted hover:text-text-primary'
                       }`}
                     >
-                      {busyRole === role
-                        ? <Loader className="h-3.5 w-3.5 animate-spin" />
-                        : has && <Check className="h-3.5 w-3.5" strokeWidth={2.4} />}
-                      {role}
+                      {s}
                     </button>
-                  )
-                })}
-              </div>
-              <p className="mt-2 text-[11px] text-text-muted">
-                Click to grant or revoke. Promote to <strong>RESOLVER</strong> to let a member answer as an expert, or <strong>ADMIN</strong> for full access.
-              </p>
-            </div>
-
-            {/* Status */}
-            <div>
-              <p className="mb-2 text-[12px] font-bold uppercase tracking-wide text-text-muted">Account status</p>
-              <div className="mb-3 flex gap-2">
-                {STATUSES.map(s => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setStatusDraft(s)}
-                    className={`flex-1 rounded-lg border px-3 py-2 text-[12px] font-semibold capitalize transition ${
-                      statusDraft === s
-                        ? 'border-brand bg-brand/10 text-brand'
-                        : 'border-border bg-bg-card text-text-secondary hover:border-brand'
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-              {statusDraft !== 'active' && (
-                <Input
-                  value={statusReason}
-                  onChange={e => setStatusReason(e.target.value)}
-                  placeholder="Reason (optional)"
-                  className="mb-3"
-                />
-              )}
-              <div className="flex justify-end">
-                <Button onClick={applyStatus} disabled={busyStatus || statusDraft === (managing.status || 'active')}>
-                  {busyStatus ? 'Updating…' : 'Update status'}
-                </Button>
+                  ))}
+                </div>
+                {statusDraft !== 'active' && (
+                  <div className="relative mt-3 flex items-center">
+                    <input
+                      value={statusReason}
+                      onChange={e => setStatusReason(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') applyStatus() }}
+                      placeholder="Reason (optional)"
+                      className={`${INPUT_CLS} pr-12`}
+                    />
+                    <button
+                      type="button"
+                      onClick={applyStatus}
+                      disabled={busyStatus}
+                      aria-label="Apply status"
+                      className="absolute right-1.5 flex h-7 w-9 items-center justify-center rounded-md bg-brand text-white transition hover:bg-brand-hover disabled:opacity-50"
+                    >
+                      <CornerDownLeft className="h-4 w-4" strokeWidth={2} />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          </>
         )}
       </Modal>
 

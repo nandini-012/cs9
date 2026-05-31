@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { FileText, Pencil, Trash2, Loader, AlertTriangle, ChevronLeft, ChevronRight, Plus, Tag } from 'lucide-react'
+import { FileText, Pencil, Trash2, Loader, AlertTriangle, ChevronLeft, ChevronRight, Plus, Tag, Save, X } from 'lucide-react'
 import Modal from '../../../../components/Modal/Modal'
 import Button from '../../../../components/Button/Button'
 import { notifyError, notifySuccess } from '../../../../lib/notify'
@@ -100,7 +100,6 @@ function FAQManagementView() {
   const [tagPanel, setTagPanel]         = useState(false)
   const [tags, setTags]                 = useState([])
   const [tagsLoading, setTagsLoading]   = useState(false)
-  const [tagCreating, setTagCreating]   = useState(false)
   const [tagForm, setTagForm]           = useState(EMPTY_TAG_FORM)
   const [tagCreatingSaving, setTagCreatingSaving] = useState(false)
   const [editingTag, setEditingTag]     = useState(null)   // { name, description }
@@ -220,28 +219,30 @@ function FAQManagementView() {
           <h1 className="font-display text-[24px] font-semibold text-text-primary">FAQ Management</h1>
           <p className="mt-2 text-[13px] text-text-secondary">View, edit, and remove published FAQ entries.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => { setCreating(true); setCreateForm(EMPTY_FORM) }}
-          aria-label="Add FAQ"
-          className="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg border border-brand px-3 py-1.5 text-[10px] font-bold text-brand transition hover:bg-brand/5"
-        >
-          <Plus className="h-3 w-3" strokeWidth={2.5} />
-          Add FAQ
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setTagPanel(true)
-            setTagsLoading(true)
-            fetchTags().then(setTags).catch(() => notifyError('Failed to load tags')).finally(() => setTagsLoading(false))
-          }}
-          aria-label="Tag management"
-          className="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg border border-brand px-3 py-1.5 text-[10px] font-bold text-brand transition hover:bg-brand/5"
-        >
-          <Tag className="h-3 w-3" strokeWidth={2.5} />
-          Tag Management
-        </button>
+        <div className="mt-1 flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => { setCreating(true); setCreateForm(EMPTY_FORM) }}
+            aria-label="Add FAQ"
+            className="flex items-center gap-1.5 rounded-lg border border-brand px-3 py-1.5 text-[10px] font-bold text-brand transition hover:bg-brand/5"
+          >
+            <Plus className="h-3 w-3" strokeWidth={2.5} />
+            Add FAQ
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setTagPanel(true)
+              setTagsLoading(true)
+              fetchTags().then(setTags).catch(() => notifyError('Failed to load tags')).finally(() => setTagsLoading(false))
+            }}
+            aria-label="Tag management"
+            className="flex items-center gap-1.5 rounded-lg border border-brand px-3 py-1.5 text-[10px] font-bold text-brand transition hover:bg-brand/5"
+          >
+            <Tag className="h-3 w-3" strokeWidth={2.5} />
+            Tag Management
+          </button>
+        </div>
       </div>
 
       <section className="rounded-lg border border-border-light bg-bg-card shadow-sm">
@@ -420,75 +421,84 @@ function FAQManagementView() {
                 {tags.map(tag => (
                   <li key={tag.name} className="flex items-center justify-between rounded-lg px-3 py-2.5 transition hover:bg-bg-primary">
                     <div className="flex min-w-0 flex-col">
-                      <span className="text-[13px] font-semibold capitalize text-text-primary truncate">
-                        {tag.name}
-                      </span>
+                      {editingTag === tag.name ? (
+                        <input
+                          value={editTagName}
+                          onChange={e => setEditTagName(e.target.value)}
+                          maxLength={30}
+                          autoFocus
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') document.getElementById(`tag-save-${tag.name}`)?.click()
+                            if (e.key === 'Escape') setEditingTag(null)
+                          }}
+                          className="w-full max-w-[200px] rounded-lg border border-brand bg-bg-card px-2 py-0.5 text-[13px] font-semibold text-text-primary outline-none"
+                        />
+                      ) : (
+                        <span className="text-[13px] font-semibold text-text-primary truncate">
+                          {tag.displayName || tag.name}
+                        </span>
+                      )}
                       <span className="text-[11px] text-text-muted">
                         {tag.questionCount} question{tag.questionCount !== 1 ? 's' : ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-2">
                       {editingTag === tag.name ? (
-                        <form
-                          onSubmit={async (e) => {
-                            e.preventDefault()
-                            if (!editTagName.trim() || editTagName.trim() === tag.name) {
-                              setEditingTag(null); return
-                            }
-                            setEditTagSaving(true)
-                            try {
-                              await renameTag(tag.name, editTagName.trim())
-                              setTags(prev => prev.map(t =>
-                                t.name === tag.name ? { ...t, name: editTagName.trim().toLowerCase() } : t
-                              ))
-                              setEditingTag(null)
-                              notifySuccess('Tag renamed.')
-                            } catch (err) {
-                              notifyError(err?.response?.data?.message || 'Failed to rename tag.')
-                            } finally {
-                              setEditTagSaving(false)
-                            }
-                          }}
-                          className="flex gap-1"
-                        >
-                          <input
-                            value={editTagName}
-                            onChange={e => setEditTagName(e.target.value)}
-                            maxLength={30}
-                            autoFocus
-                            className="w-28 rounded-lg border border-brand bg-bg-card px-2 py-1 text-[12px] text-text-primary outline-none"
-                          />
-                          <button type="submit" disabled={editTagSaving} className="rounded-lg bg-brand px-2 py-1 text-[11px] font-semibold text-white disabled:opacity-50">
-                            {editTagSaving ? '…' : 'Save'}
+                        <>
+                          <button
+                            id={`tag-save-${tag.name}`}
+                            type="button"
+                            disabled={editTagSaving || !editTagName.trim() || editTagName.trim() === tag.name}
+                            onClick={async () => {
+                              if (!editTagName.trim() || editTagName.trim() === tag.name) { setEditingTag(null); return }
+                              setEditTagSaving(true)
+                              try {
+                                await renameTag(tag.name, editTagName.trim())
+                                setTags(prev => prev.map(t =>
+                                  t.name === tag.name ? { ...t, name: editTagName.trim().toLowerCase(), displayName: editTagName.trim() } : t
+                                ))
+                                setEditingTag(null)
+                                notifySuccess('Tag renamed.')
+                              } catch (err) {
+                                notifyError(err?.response?.data?.message || 'Failed to rename tag.')
+                              } finally {
+                                setEditTagSaving(false)
+                              }
+                            }}
+                            aria-label="Save tag"
+                            className="rounded-lg border border-brand bg-brand p-1.5 text-white transition hover:bg-brand/90 disabled:opacity-40"
+                          >
+                            <Save className="h-3.5 w-3.5" strokeWidth={2} />
                           </button>
                           <button
                             type="button"
                             onClick={() => setEditingTag(null)}
-                            className="rounded-lg border border-border px-2 py-1 text-[11px] font-medium text-text-secondary"
+                            aria-label="Cancel"
+                            className="rounded-lg border border-border p-1.5 text-text-secondary transition hover:border-border hover:text-text-primary"
                           >
-                            ✕
+                            <X className="h-3.5 w-3.5" strokeWidth={2} />
                           </button>
-                        </form>
+                        </>
                       ) : (
                         <>
                           <button
                             type="button"
                             onClick={() => {
                               setEditingTag(tag.name)
-                              setEditTagName(tag.name)
+                              setEditTagName(tag.displayName || tag.name)
                             }}
-                            className="rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-text-secondary transition hover:border-brand hover:text-brand"
+                            aria-label="Rename tag"
+                            className="rounded-lg border border-border p-1.5 text-text-secondary transition hover:border-brand hover:text-brand"
                           >
-                            Rename
+                            <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} />
                           </button>
                           <button
                             type="button"
-                            onClick={() => {
-                              setDeletingTag(tag.name)
-                            }}
-                            className="rounded-lg border border-danger/30 px-2.5 py-1 text-[11px] font-medium text-danger transition hover:bg-danger/5"
+                            onClick={() => setDeletingTag(tag.name)}
+                            aria-label="Delete tag"
+                            className="rounded-lg border border-danger/30 p-1.5 text-danger transition hover:bg-danger/5"
                           >
-                            Delete
+                            <Trash2 className="h-3.5 w-3.5" strokeWidth={1.8} />
                           </button>
                         </>
                       )}

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  adminCommentAndResolve,
   assignUserRole,
   createTag,
   createUser,
@@ -36,5 +37,8 @@ router.get('/tags', listTags)
 router.post('/tags', createTag)
 router.patch('/tags/:tagName', renameTag)
 router.delete('/tags/:tagName', deleteTag)
+
+// Admin posts a response and resolves the question in one action.
+router.post('/questions/:questionId/resolve', adminCommentAndResolve)
 
 export default router

@@ -5,6 +5,13 @@ export async function fetchAdminDashboard() {
   return data
 }
 
+// Post an admin response and resolve the question in one action. The reply shows
+// as "ADMIN" in the thread regardless of which admin posted it.
+export async function adminResolveQuery(questionId, body) {
+  const { data } = await axisPrivate().post(`/api/admin/questions/${questionId}/resolve`, { body })
+  return data
+}
+
 export async function fetchAdminNotifications() {
   const { data } = await axisPrivate().get('/api/notifications?limit=8')
   return data
@@ -17,6 +24,29 @@ export async function markAllAdminNotificationsRead() {
 
 export async function logoutAdmin() {
   await axisPrivate().post('/api/auth/logout')
+}
+
+// ─── Flag moderation ─────────────────────────────────────────────────────────
+
+export async function fetchFlags({ page = 1, limit = 10, status = '', targetType = '', reason = '' } = {}) {
+  const params = new URLSearchParams({ page, limit })
+  if (status) params.set('status', status)
+  if (targetType) params.set('targetType', targetType)
+  if (reason) params.set('reason', reason)
+  const { data } = await axisPrivate().get(`/api/flags?${params}`)
+  return { items: data.flags || [], pagination: data.pagination || { page, pages: 0, total: 0 } }
+}
+
+export async function fetchModerationQueue({ page = 1, limit = 10, targetType = '' } = {}) {
+  const params = new URLSearchParams({ page, limit })
+  if (targetType) params.set('targetType', targetType)
+  const { data } = await axisPrivate().get(`/api/moderation/queue?${params}`)
+  return { items: data.items || [], pagination: data.pagination || { page, pages: 0, total: 0 } }
+}
+
+export async function resolveFlag(flagId, { status, action, resolutionNote }) {
+  const { data } = await axisPrivate().patch(`/api/flags/${flagId}/resolve`, { status, action, resolutionNote })
+  return data
 }
 
 // ─── User management ─────────────────────────────────────────────────────────

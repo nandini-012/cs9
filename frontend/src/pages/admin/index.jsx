@@ -6,6 +6,8 @@ import AdminHeader from './components/Header/AdminHeader'
 import AdminLeftPane from './components/LeftPane/AdminLeftPane'
 import FAQManagementView from './pages/FAQManagement'
 import QueriesManagementView from './pages/QueriesManagement'
+import AdminQueryDetailView from './pages/QueryDetail'
+import FlagModerationView from './pages/FlagModeration'
 import SparkLeaderboardView from './pages/SparkLeaderboard'
 import UserManagementView from './pages/UserManagement'
 import AdminProfileView from './pages/AdminProfile'
@@ -31,6 +33,7 @@ function AdminHome() {
   }, [isDark])
 
   const [currentAdminView, setCurrentAdminView] = useState('dashboard')
+  const [selectedQueryId, setSelectedQueryId] = useState(null)
   const [dashboardData, setDashboardData] = useState(null)
   const [isDashboardLoading, setIsDashboardLoading] = useState(true)
   const [notifications, setNotifications] = useState([])
@@ -129,6 +132,11 @@ function AdminHome() {
     setCurrentAdminView('adminProfile')
   }
 
+  function openQuery(questionId) {
+    setSelectedQueryId(questionId)
+    setCurrentAdminView('queryDetail')
+  }
+
   function handleSearchSubmit(event) {
     event.preventDefault()
     if (searchQuery.trim()) {
@@ -141,6 +149,7 @@ function AdminHome() {
     isLoading: isDashboardLoading,
     searchQuery,
     onRefresh: loadDashboard,
+    onNavigate: setCurrentAdminView,
   }
 
   return (
@@ -176,7 +185,11 @@ function AdminHome() {
             <DashboardView {...viewProps} />
           </Suspense>
         )}
-        {currentAdminView === 'queriesManagement' && <QueriesManagementView {...viewProps} />}
+        {currentAdminView === 'queriesManagement' && <QueriesManagementView {...viewProps} onOpenQuery={openQuery} />}
+        {currentAdminView === 'queryDetail' && (
+          <AdminQueryDetailView queryId={selectedQueryId} onBack={() => setCurrentAdminView('queriesManagement')} />
+        )}
+        {currentAdminView === 'flagModeration' && <FlagModerationView {...viewProps} />}
         {currentAdminView === 'userManagement' && <UserManagementView {...viewProps} />}
         {currentAdminView === 'sparkLeaderboard' && <SparkLeaderboardView {...viewProps} />}
         {currentAdminView === 'faqManagement' && <FAQManagementView {...viewProps} />}

@@ -1,9 +1,10 @@
 /* global __PROJECT_NAME__, __PROJECT_TAGLINE__ */
-import { Zap, LayoutGrid, MessageSquare, PanelLeftClose, Settings, Users } from 'lucide-react'
+import { Zap, LayoutGrid, MessageSquare, PanelLeftClose, Settings, Users, Flag } from 'lucide-react'
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', Icon: LayoutGrid },
   { id: 'queriesManagement', label: 'Queries', Icon: MessageSquare },
+  { id: 'flagModeration', label: 'Flags', Icon: Flag },
   { id: 'userManagement', label: 'Users', Icon: Users },
   { id: 'sparkLeaderboard', label: 'Spark', Icon: Zap },
   { id: 'faqManagement', label: 'FAQ', Icon: Settings },

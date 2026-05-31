@@ -310,9 +310,11 @@ export async function getQuestionById(req, res, next) {
       if (doc.moderation_status && doc.moderation_status !== 'approved') return 'under_review'
       return 'visible'
     }
-    // Decorate with author name + moderation state; redact hidden bodies for non-admins
+    // Decorate with author name + moderation state; redact hidden bodies for non-admins.
+    // Admin-authored content shows as "ADMIN" (role, not identity) regardless of who posted it.
     function decorate(doc) {
-      const base = { ...doc, author_name: nameById[doc.author_id] || 'User' }
+      const authorName = doc.author_role === 'ADMIN' ? 'ADMIN' : (nameById[doc.author_id] || 'User')
+      const base = { ...doc, author_name: authorName }
       const state = moderationState(doc)
       if (admin || state === 'visible') {
         return { ...base, moderation_state: 'visible' }
