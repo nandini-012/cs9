@@ -1,11 +1,15 @@
+import { validationResult } from 'express-validator'
+import argon2 from 'argon2'
 import Answer from '../models/answer.model.js'
 import Flag from '../models/flag.model.js'
 import Notification from '../models/notification.model.js'
 import Question from '../models/question.model.js'
 import Role from '../models/role.model.js'
 import SparkTransaction from '../models/spark-transaction.model.js'
+import UserProfile from '../models/user-profile.model.js'
 import UserRoleMapper from '../models/user-role-mapper.model.js'
 import User from '../models/user.model.js'
+import { validatePassword } from './auth.controller.js'
 import {
   ensureRole,
   getMappedRoles,
@@ -234,6 +238,70 @@ export async function listAdminSparkTransactions(req, res, next) {
       success: true,
       transactions,
       pagination: paginationResult(page, limit, total),
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function createUser(req, res, next) {
+  try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      throw createHttpError(400, errors.array()[0].msg)
+    }
+
+    const { name, email, password, role } = req.body
+
+    const existing = await User.findOne({ email: email.trim().toLowerCase() })
+    if (existing) {
+      throw createHttpError(409, 'A user with that email already exists')
+    }
+
+    validatePassword(password)
+
+    const user = await User.create({
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      passwordHash: await argon2.hash(password),
+    })
+
+    const userRole = await ensureRole('USER')
+    await UserRoleMapper.create({ user_id: user.user_id, role_id: userRole.role_id })
+    await UserProfile.create({ user_id: user.user_id, display_name: user.name })
+
+    if (role && typeof role === 'string') {
+      const normalizedRole = normalizeRoleName(role)
+      if (normalizedRole && normalizedRole !== 'USER') {
+        const roleDoc = await Role.findOne({ name: normalizedRole })
+        if (roleDoc) {
+          await UserRoleMapper.create({ user_id: user.user_id, role_id: roleDoc.role_id })
+          await Notification.create({
+            user_id: user.user_id,
+            actor_id: req.user.userId,
+            type: 'account_status',
+            title: 'Account created',
+            body: `Your ${normalizedRole} role was set when your account was created.`,
+            reference_id: user.user_id,
+            reference_type: 'user',
+          })
+        }
+      }
+    }
+
+    const roles = await getMappedRoles(user.user_id)
+
+    res.status(201).json({
+      success: true,
+      user: {
+        id: user.user_id,
+        name: user.name,
+        email: user.email,
+        roles,
+        status: user.status,
+        sparkPoints: user.spark_points,
+        createdAt: user.created_at,
+      },
     })
   } catch (error) {
     next(error)

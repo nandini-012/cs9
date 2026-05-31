@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   Users, Search, ShieldCheck, ChevronLeft, ChevronRight, Loader,
-  Check, Zap, Mail, Calendar, UserCog,
+  Check, Zap, Mail, Calendar, UserCog, Plus,
 } from 'lucide-react'
 import Modal from '../../../../components/Modal/Modal'
 import Button from '../../../../components/Button/Button'
 import Input from '../../../../components/Input/Input'
 import { notifyError, notifySuccess } from '../../../../lib/notify'
-import { fetchUsers, assignUserRole, removeUserRole, updateUserStatus } from '../../service'
+import { fetchUsers, assignUserRole, removeUserRole, updateUserStatus, createUser } from '../../service'
 
 const PAGE_SIZE = 10
 const ROLES = ['USER', 'RESOLVER', 'ADMIN']
@@ -53,6 +53,10 @@ function UserManagementView() {
   const [statusDraft, setStatusDraft] = useState('active')
   const [statusReason, setStatusReason] = useState('')
   const [busyStatus, setBusyStatus] = useState(false)
+
+  const [creating, setCreating]     = useState(false)
+  const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', role: 'USER' })
+  const [creatingSaving, setCreatingSaving] = useState(false)
 
   // Debounce the search box.
   useEffect(() => {
@@ -132,6 +136,36 @@ function UserManagementView() {
     }
   }
 
+  function closeCreate() {
+    setCreating(false)
+    setCreateForm({ name: '', email: '', password: '', role: 'USER' })
+  }
+
+  async function saveCreate(event) {
+    event.preventDefault()
+    if (!createForm.name.trim() || !createForm.email.trim() || !createForm.password) {
+      notifyError('Name, email, and password are required.')
+      return
+    }
+    setCreatingSaving(true)
+    try {
+      const user = await createUser({
+        name: createForm.name.trim(),
+        email: createForm.email.trim(),
+        password: createForm.password,
+        role: createForm.role,
+      })
+      setUsers(prev => [user, ...prev])
+      setPagination(prev => ({ ...prev, total: prev.total + 1 }))
+      notifySuccess('User created.')
+      closeCreate()
+    } catch (error) {
+      notifyError(error?.response?.data?.message || 'Failed to create user.')
+    } finally {
+      setCreatingSaving(false)
+    }
+  }
+
   return (
     <div className="flex-1 overflow-y-auto p-5 lg:p-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -143,9 +177,20 @@ function UserManagementView() {
             Manage members, promote roles, and control account status.
           </p>
         </div>
-        <span className="rounded-full bg-bg-tertiary px-3 py-1 text-[12px] font-semibold text-text-muted">
-          {pagination.total} users
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="rounded-full bg-bg-tertiary px-3 py-1 text-[12px] font-semibold text-text-muted">
+            {pagination.total} users
+          </span>
+          <button
+            type="button"
+            onClick={() => { setCreating(true); setCreateForm({ name: '', email: '', password: '', role: 'USER' }) }}
+            aria-label="Add user"
+            className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-brand/90"
+          >
+            <Plus className="h-3.5 w-3.5" strokeWidth={2.2} />
+            Add User
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -340,6 +385,57 @@ function UserManagementView() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Create user modal */}
+      <Modal isOpen={!!creating} onClose={closeCreate} title="Add user" panelClassName="sm:p-8">
+        <h3 className="mb-5 text-[18px] font-bold text-text-primary">Add user</h3>
+        <form onSubmit={saveCreate} className="flex flex-col gap-4">
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-text-secondary">Name</label>
+            <Input
+              value={createForm.name}
+              onChange={e => setCreateForm(f => ({ ...f, name: e.target.value }))}
+              placeholder="Full name"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-text-secondary">Email</label>
+            <Input
+              type="email"
+              value={createForm.email}
+              onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))}
+              placeholder="user@example.com"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-text-secondary">Password</label>
+            <Input
+              type="password"
+              value={createForm.password}
+              onChange={e => setCreateForm(f => ({ ...f, password: e.target.value }))}
+              placeholder="Strong password"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-text-secondary">Initial role</label>
+            <select
+              value={createForm.role}
+              onChange={e => setCreateForm(f => ({ ...f, role: e.target.value }))}
+              className="w-full rounded-lg border border-border bg-bg-card px-4 py-2.5 text-[13px] text-text-primary shadow-sm transition focus:border-brand focus:outline-none"
+            >
+              {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div className="mt-2 flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={closeCreate} disabled={creatingSaving}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={creatingSaving}>
+              {creatingSaving ? 'Creating…' : 'Create user'}
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   )

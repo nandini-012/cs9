@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   assignUserRole,
+  createUser,
   getAdminDashboard,
   listAdminSparkTransactions,
   removeUserRole,
@@ -24,6 +25,7 @@ router.use(verifyToken, checkRole('ADMIN'))
 router.get('/dashboard', getAdminDashboard)
 router.post('/users/:userId/roles', assignUserRole)
 router.delete('/users/:userId/roles/:roleName', removeUserRole)
+router.post('/users', createUser)
 router.get('/sparks/transactions', listAdminSparkTransactions)
 
 export default router

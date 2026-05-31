@@ -49,6 +49,11 @@ export async function updateUserStatus(userId, status, reason = '') {
   return data
 }
 
+export async function createUser({ name, email, password, role = 'USER' }) {
+  const { data } = await axisPrivate().post('/api/admin/users', { name, email, password, role })
+  return data.user
+}
+
 // ─── Queries management ──────────────────────────────────────────────────────
 
 export async function fetchAdminQuestions({ page = 1, limit = 10, search = '' } = {}) {
@@ -80,4 +85,14 @@ export async function deleteFAQ(questionId, reason = '') {
     data: { reason },
   })
   return data
+}
+
+export async function createFAQ({ title, body, tags }) {
+  const { data } = await axisPrivate().post('/api/questions', {
+    kind: 'faq',
+    title,
+    body,
+    tags,
+  })
+  return data.question
 }

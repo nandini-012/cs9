@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { FileText, Pencil, Trash2, Loader, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { FileText, Pencil, Trash2, Loader, AlertTriangle, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import Modal from '../../../../components/Modal/Modal'
 import Button from '../../../../components/Button/Button'
 import Input from '../../../../components/Input/Input'
 import { notifyError, notifySuccess } from '../../../../lib/notify'
-import { fetchFAQs, updateFAQ, deleteFAQ } from '../../service'
+import { fetchFAQs, updateFAQ, deleteFAQ, createFAQ } from '../../service'
 
 const EMPTY_FORM = { title: '', body: '', tags: '' }
 const PAGE_SIZE = 10
@@ -19,6 +19,10 @@ function FAQManagementView() {
 
   const [deleting, setDeleting] = useState(null)  // faq pending delete, or null
   const [removing, setRemoving] = useState(false)
+
+  const [creating, setCreating] = useState(false)
+  const [createForm, setCreateForm] = useState(EMPTY_FORM)
+  const [creatingSaving, setCreatingSaving] = useState(false)
 
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -57,6 +61,34 @@ function FAQManagementView() {
   function closeEdit() {
     setEditing(null)
     setForm(EMPTY_FORM)
+  }
+
+  function closeCreate() {
+    setCreating(false)
+    setCreateForm(EMPTY_FORM)
+  }
+
+  async function saveCreate(event) {
+    event.preventDefault()
+    if (!createForm.title.trim() || !createForm.body.trim()) {
+      notifyError('Title and answer are required.')
+      return
+    }
+    setCreatingSaving(true)
+    try {
+      const created = await createFAQ({
+        title: createForm.title.trim(),
+        body: createForm.body.trim(),
+        tags: createForm.tags.split(',').map((t) => t.trim()).filter(Boolean),
+      })
+      setFaqs((prev) => [created, ...prev])
+      notifySuccess('FAQ created.')
+      closeCreate()
+    } catch {
+      notifyError('Failed to create FAQ.')
+    } finally {
+      setCreatingSaving(false)
+    }
   }
 
   async function saveEdit(event) {
@@ -105,13 +137,24 @@ function FAQManagementView() {
 
       <section className="rounded-lg border border-border-light bg-bg-card shadow-sm">
         <div className="flex items-center justify-between border-b border-border-light px-5 py-4">
-          <h2 className="flex items-center gap-2 text-[16px] font-bold text-text-primary">
-            <FileText className="h-4 w-4 text-brand" strokeWidth={1.8} />
-            All FAQs
-          </h2>
-          <span className="rounded-full bg-bg-tertiary px-2.5 py-1 text-[11px] font-bold text-text-muted">
-            {faqs.length}
-          </span>
+          <div className="flex items-center gap-3">
+            <h2 className="flex items-center gap-2 text-[16px] font-bold text-text-primary">
+              <FileText className="h-4 w-4 text-brand" strokeWidth={1.8} />
+              All FAQs
+            </h2>
+            <span className="rounded-full bg-bg-tertiary px-2.5 py-1 text-[11px] font-bold text-text-muted">
+              {faqs.length}
+            </span>
+            <button
+              type="button"
+              onClick={() => { setCreating(true); setCreateForm(EMPTY_FORM) }}
+              aria-label="Add FAQ"
+              className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-brand/90"
+            >
+              <Plus className="h-3.5 w-3.5" strokeWidth={2.2} />
+              Add FAQ
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -233,6 +276,49 @@ function FAQManagementView() {
             </Button>
             <Button type="submit" disabled={saving}>
               {saving ? 'Saving…' : 'Save changes'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Create FAQ modal */}
+      <Modal isOpen={!!creating} onClose={closeCreate} title="Add FAQ" panelClassName="sm:p-8">
+        <h3 className="mb-5 text-[18px] font-bold text-text-primary">Add FAQ</h3>
+        <form onSubmit={saveCreate} className="flex flex-col gap-4">
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-text-secondary">Question</label>
+            <Input
+              value={createForm.title}
+              onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
+              placeholder="FAQ question"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-text-secondary">Answer</label>
+            <textarea
+              value={createForm.body}
+              onChange={(e) => setCreateForm((f) => ({ ...f, body: e.target.value }))}
+              rows={6}
+              placeholder="FAQ answer"
+              className="w-full rounded-lg border border-border bg-bg-card px-4 py-3 text-[13px] shadow-sm outline-none transition placeholder:text-text-muted focus:border-text-primary focus:ring-1 focus:ring-text-primary"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-text-secondary">
+              Tags <span className="font-normal text-text-muted">(comma-separated)</span>
+            </label>
+            <Input
+              value={createForm.tags}
+              onChange={(e) => setCreateForm((f) => ({ ...f, tags: e.target.value }))}
+              placeholder="internship, joining"
+            />
+          </div>
+          <div className="mt-2 flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={closeCreate} disabled={creatingSaving}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={creatingSaving}>
+              {creatingSaving ? 'Creating…' : 'Create FAQ'}
             </Button>
           </div>
         </form>
