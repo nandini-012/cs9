@@ -240,17 +240,17 @@ export async function getUserContributions(req, res, next) {
       acceptedAnswersCount,
     ] = await Promise.all([
       Question.find(questionFilter)
-        .select('question_id title body status upvotes created_at')
+        .select('question_id title body status upvotes answer_count created_at')
         .sort({ created_at: -1 })
         .limit(limit)
         .lean(),
       Answer.find(answerFilter)
-        .select('answer_id question_id body score is_accepted created_at')
+        .select('answer_id question_id body upvotes score comment_count is_accepted created_at')
         .sort({ created_at: -1 })
         .limit(limit)
         .lean(),
       Comment.find(commentFilter)
-        .select('comment_id question_id answer_id body score created_at')
+        .select('comment_id question_id answer_id body score reply_count created_at')
         .sort({ created_at: -1 })
         .limit(limit)
         .lean(),
@@ -268,6 +268,7 @@ export async function getUserContributions(req, res, next) {
         body: q.body,
         status: q.status,
         score: q.upvotes || 0,
+        answerCount: q.answer_count || 0,
         time: q.created_at,
       })),
       ...answers.map(a => ({
@@ -275,7 +276,8 @@ export async function getUserContributions(req, res, next) {
         id: a.answer_id,
         questionId: a.question_id,
         body: a.body,
-        score: a.score || 0,
+        score: a.upvotes ?? a.score ?? 0,
+        commentCount: a.comment_count || 0,
         isAccepted: a.is_accepted,
         time: a.created_at,
       })),
@@ -286,6 +288,7 @@ export async function getUserContributions(req, res, next) {
         answerId: c.answer_id,
         body: c.body,
         score: c.score || 0,
+        replyCount: c.reply_count || 0,
         time: c.created_at,
       })),
     ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, limit)
