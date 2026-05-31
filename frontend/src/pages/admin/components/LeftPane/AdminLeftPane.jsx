@@ -13,10 +13,10 @@ function AdminLeftPane({ currentView, onNavigate }) {
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-[#f8f9fa] pt-6 md:flex dark:bg-bg-tertiary">
       <button
         type="button"
-        className="flex flex-col px-6 pb-6 text-left"
+        className="flex flex-col px-6 pb-6 text-left transition hover:opacity-80"
         onClick={() => onNavigate('dashboard')}
       >
-        <h2 className="font-display text-[13px] font-medium leading-tight text-brand">
+        <h2 className="font-display text-[18px] font-bold leading-tight text-[#0f172a]">
           {__PROJECT_NAME__ || 'Vicharanashala'}
         </h2>
         <p className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">

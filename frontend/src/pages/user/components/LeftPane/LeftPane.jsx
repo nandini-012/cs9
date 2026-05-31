@@ -17,7 +17,7 @@ function LeftPane({ isCollapsed, onToggleCollapse, sidebarNav, currentView, onNa
       {/* Brand */}
       <button
         type="button"
-        className={`flex flex-col ${isCollapsed ? 'items-center px-2' : 'px-6'} pb-6 text-left`}
+        className={`flex flex-col ${isCollapsed ? 'items-center px-2' : 'px-6'} pb-6 text-left transition hover:opacity-80`}
         onClick={() => onNavigate('Dashboard')}
       >
         <h2 className="font-display text-[18px] font-bold leading-tight text-text-primary">

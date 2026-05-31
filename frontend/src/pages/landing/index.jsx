@@ -247,9 +247,10 @@ function Landing() {
     <div className="min-h-svh bg-bg-tertiary text-text-primary">
       <header className="sticky top-0 z-50 border-b border-border bg-bg-tertiary/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-300 items-center justify-between px-2 py-3 sm:px-2 sm:py-4">
-          <a
-            href="#top"
-            className="flex flex-col"
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex flex-col text-left transition hover:opacity-80"
           >
             <span className="font-display text-[18px] font-bold leading-tight text-text-primary sm:text-[22px]">
               {__PROJECT_NAME__}
