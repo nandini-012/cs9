@@ -168,29 +168,25 @@ function UserManagementView() {
 
   return (
     <div className="flex-1 overflow-y-auto p-5 lg:p-8">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="font-display flex items-center gap-2 text-[24px] font-semibold text-text-primary">
-            <Users className="h-6 w-6 text-brand" strokeWidth={1.8} /> User Management
+            <Users className="h-6 w-6 text-brand" strokeWidth={1.8} />
+            User Management
           </h1>
           <p className="mt-2 text-[13px] text-text-secondary">
             Manage members, promote roles, and control account status.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="rounded-full bg-bg-tertiary px-3 py-1 text-[12px] font-semibold text-text-muted">
-            {pagination.total} users
-          </span>
-          <button
-            type="button"
-            onClick={() => { setCreating(true); setCreateForm({ name: '', email: '', password: '', role: 'USER' }) }}
-            aria-label="Add user"
-            className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-brand/90"
-          >
-            <Plus className="h-3.5 w-3.5" strokeWidth={2.2} />
-            Add User
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => { setCreating(true); setCreateForm({ name: '', email: '', password: '', role: 'USER' }) }}
+          aria-label="Add user"
+          className="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-brand/90"
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={2.2} />
+          Add User
+        </button>
       </div>
 
       {/* Filters */}

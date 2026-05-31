@@ -130,9 +130,20 @@ function FAQManagementView() {
 
   return (
     <div className="flex-1 overflow-y-auto p-5 lg:p-8">
-      <div className="mb-6">
-        <h1 className="font-display text-[24px] font-semibold text-text-primary">FAQ Management</h1>
-        <p className="mt-2 text-[13px] text-text-secondary">View, edit, and remove published FAQ entries.</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-[24px] font-semibold text-text-primary">FAQ Management</h1>
+          <p className="mt-2 text-[13px] text-text-secondary">View, edit, and remove published FAQ entries.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => { setCreating(true); setCreateForm(EMPTY_FORM) }}
+          aria-label="Add FAQ"
+          className="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-brand/90"
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={2.2} />
+          Add FAQ
+        </button>
       </div>
 
       <section className="rounded-lg border border-border-light bg-bg-card shadow-sm">
@@ -145,15 +156,6 @@ function FAQManagementView() {
             <span className="rounded-full bg-bg-tertiary px-2.5 py-1 text-[11px] font-bold text-text-muted">
               {faqs.length}
             </span>
-            <button
-              type="button"
-              onClick={() => { setCreating(true); setCreateForm(EMPTY_FORM) }}
-              aria-label="Add FAQ"
-              className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-brand/90"
-            >
-              <Plus className="h-3.5 w-3.5" strokeWidth={2.2} />
-              Add FAQ
-            </button>
           </div>
         </div>
 
