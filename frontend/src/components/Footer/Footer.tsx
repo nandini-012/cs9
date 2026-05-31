@@ -1,5 +1,5 @@
 /* global __PROJECT_NAME__, __PROJECT_OWNER__ */
-import { Github, Linkedin, Twitter } from 'lucide-react'
+import { Code2, Users, MessageCircle } from 'lucide-react'
 
 function Footer() {
   return (
@@ -24,9 +24,9 @@ function Footer() {
           </p>
           <div className="flex gap-3">
             {[
-              { Icon: Github, label: 'GitHub' },
-              { Icon: Linkedin, label: 'LinkedIn' },
-              { Icon: Twitter, label: 'Twitter' },
+              { Icon: Code2, label: 'GitHub' },
+              { Icon: Users, label: 'LinkedIn' },
+              { Icon: MessageCircle, label: 'Twitter' },
             ].map(({ Icon, label }) => (
               <button
                 key={label}

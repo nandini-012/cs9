@@ -247,17 +247,18 @@ function Landing() {
     <div className="min-h-svh bg-[#f8f9fa] text-[#191c1d]">
       <header className="sticky top-0 z-50 border-b border-[#c4c7c7] bg-[#f8f9fa]/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-300 items-center justify-between px-2 py-3 sm:px-2 sm:py-4">
-          <a
-            href="#top"
-            className="flex flex-col"
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex flex-col text-left transition hover:opacity-80"
           >
-            <span className="font-display text-[18px] font-bold leading-tight text-[#0f172a] sm:text-[22px]">
-              {__PROJECT_NAME__}
+            <span className="font-display text-[18px] font-bold leading-tight text-[#0f172a]">
+              {__PROJECT_NAME__ || 'Vicharanashala'}
             </span>
             <span className="text-[10px] font-bold uppercase tracking-widest text-[#444748]">
-              {__PROJECT_TAGLINE__}
+              {__PROJECT_TAGLINE__ || 'Lab Internship Hub'}
             </span>
-          </a>
+          </button>
           <Button variant="secondary" className="text-[10px] bg-[#8c6a40]/80 text-white" onClick={handleHeaderButtonClick}>
             {currentUser ? 'Dashboard' : 'Login'}
           </Button>
