@@ -1,8 +1,8 @@
 # Rogāre — Design System & UI Guide
 
 Single source of truth for **visual design** in the frontend. For architectural
-conventions (component patterns, state, routing, services) see [context.md](./context.md);
-for the file map see [fileStructure.md](./fileStructure.md).
+conventions (component patterns, state, routing, services) see [Context.md](./Context.md);
+for the file map see [FileStructure.md](./FileStructure.md).
 
 App: **Rogāre** — an internship FAQ / Q&A platform. Warm, editorial, document-like
 aesthetic. Serif display headings over a clean sans body, with a single brown

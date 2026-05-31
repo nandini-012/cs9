@@ -20,12 +20,12 @@ A single `questions` collection serves both by toggling `kind: "faq" | "communit
 cs9/
 ├── README.md               ← You are here
 ├── CONTRIBUTING.md         ← PR template and author checklist
-├── feature.md              ← Auto-assignment cron feature spec
+├── Feature.md              ← Auto-assignment cron feature spec
 │
 ├── backend/
 │   ├── ER_DIAGRAM.md       ← MongoDB entity relationships + cache ownership
 │   ├── LEADERBOARD.md      ← Spark / reputation / accepted-answer scoring
-│   ├── fileStructure.md    ← Backend file tree
+│   ├── FileStructure.md    ← Backend file tree
 │   ├── src/
 │   │   ├── app.js              ← Express app (CORS, rate-limit, helmet, routes)
 │   │   ├── server.js           ← Entry point (DB connect, cron start, listen)
@@ -95,9 +95,9 @@ cs9/
 │   └── package.json
 │
 └── frontend/
-    ├── context.md              ← Component patterns, state, routing, styling
-    ├── design.md               ← Color tokens, typography, shared components
-    ├── fileStructure.md        ← Frontend file tree
+    ├── Context.md              ← Component patterns, state, routing, styling
+    ├── Design.md               ← Color tokens, typography, shared components
+    ├── FileStructure.md        ← Frontend file tree
     ├── index.html
     ├── vite.config.js
     ├── jsconfig.json
@@ -152,13 +152,13 @@ cs9/
 
 | File | What it covers |
 |------|---------------|
-| [`frontend/context.md`](./frontend/context.md) | **Frontend conventions** — component patterns, state ownership, service layer, routing, imports, styling, icons |
-| [`frontend/design.md`](./frontend/design.md) | **Design system** — color tokens (light/dark), typography, shared component specs, layout, feedback |
+| [`frontend/Context.md`](./frontend/Context.md) | **Frontend conventions** — component patterns, state ownership, service layer, routing, imports, styling, icons |
+| [`frontend/Design.md`](./frontend/Design.md) | **Design system** — color tokens (light/dark), typography, shared component specs, layout, feedback |
 | [`backend/ER_DIAGRAM.md`](./backend/ER_DIAGRAM.md) | **Data model** — MongoDB collections, relationships, polymorphic votes/flags, cache ownership |
 | [`backend/LEADERBOARD.md`](./backend/LEADERBOARD.md) | **Scoring** — spark points ledger, reputation derivation, accepted-answer aggregation |
-| [`backend/fileStructure.md`](./backend/fileStructure.md) | **Backend file tree** |
-| [`frontend/fileStructure.md`](./frontend/fileStructure.md) | **Frontend file tree** |
-| [`feature.md`](./feature.md) | **Auto-assignment cron** — spec, design, failure handling, rollback plan |
+| [`backend/FileStructure.md`](./backend/FileStructure.md) | **Backend file tree** |
+| [`frontend/FileStructure.md`](./frontend/FileStructure.md) | **Frontend file tree** |
+| [`Feature.md`](./Feature.md) | **Auto-assignment cron** — spec, design, failure handling, rollback plan |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | **PR template** — required sections, author checklist, testing requirements |
 
 ---

@@ -6,8 +6,8 @@ frontend/
 ├── package.json
 ├── vite.config.js
 ├── jsconfig.json
-├── context.md                  # Component patterns, state, routing, imports
-├── design.md                   # Color tokens, typography, shared components
+├── Context.md                  # Component patterns, state, routing, imports
+├── Design.md                   # Color tokens, typography, shared components
 │
 └── src/
     ├── App.jsx
@@ -84,7 +84,7 @@ frontend/
     │   │       ├── MyContributions/
     │   │       │   ├── index.jsx
     │   │       │   ├── service.js
-    │   │       │   └── plan.md
+    │   │       │   └── Plan.md
     │   │       ├── ProfileSettings/
     │   │       │   └── index.jsx             ← Edit profile, credentials, tags
     │   │       ├── QueryDetail/
