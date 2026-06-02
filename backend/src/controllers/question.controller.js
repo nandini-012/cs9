@@ -404,20 +404,25 @@ export async function recordQuestionView(req, res, next) {
     }
 
     // Upsert — only inserts if (question_id, user_id) pair doesn't exist.
-    // Second+ views are a no-op on this collection.
-    await QuestionView.findOneAndUpdate(
+    // Second+ views match the existing row and insert nothing.
+    const result = await QuestionView.updateOne(
       { question_id: questionId, user_id: userId },
       { $setOnInsert: { viewed_at: new Date() } },
       { upsert: true },
     )
 
-    // Increment cached count only when this was a genuinely new view
-    await Question.updateOne(
-      { question_id: questionId },
-      { $inc: { view_count: 1 } },
-    )
+    // Bump the cached count ONLY when this call actually inserted a new row —
+    // i.e. the user's first view. Repeat views match the existing row
+    // (upsertedCount === 0) and must not increment.
+    const isNewView = result.upsertedCount > 0
+    if (isNewView) {
+      await Question.updateOne(
+        { question_id: questionId },
+        { $inc: { view_count: 1 } },
+      )
+    }
 
-    res.json({ success: true, viewed: true })
+    res.json({ success: true, viewed: isNewView })
   } catch (error) {
     next(error)
   }
