@@ -19,6 +19,8 @@ export function parseMarkdown(text) {
     return DOMPurify.sanitize(rawHtml)
   } catch (err) {
     console.error('Failed to parse markdown:', err)
-    return text
+    // Never return unsanitized input — sanitize the raw text so a parse
+    // failure can't become an XSS vector via dangerouslySetInnerHTML.
+    return DOMPurify.sanitize(text)
   }
 }
