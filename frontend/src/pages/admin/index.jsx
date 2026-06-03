@@ -134,13 +134,13 @@ function AdminHome() {
     navigate('/')
   }
 
-  const navigateAdmin = useCallback((target) => {
+  const navigateAdmin = useCallback((target, options) => {
     const path = normalizeAdminNavigationTarget(target)
     if (path.startsWith('http')) {
       window.open(path, '_blank', 'noopener,noreferrer')
       return
     }
-    navigate(path)
+    navigate(path, options)
   }, [navigate])
 
   async function handleMarkAllNotifRead() {

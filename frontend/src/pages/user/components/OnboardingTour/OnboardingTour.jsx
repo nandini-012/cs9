@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 const tourSteps = [
   {
-    title: 'Welcome to Rogāre! 🎓',
+    title: 'Welcome to Vicharanashala FAQ! 🎓',
     body: "Let's take a quick 1-minute tour to help you navigate your new query resolution portal and learn how to ask, vote, and track contributions.",
   },
   {

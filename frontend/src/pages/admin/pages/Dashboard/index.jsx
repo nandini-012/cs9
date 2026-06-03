@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react'
+import { axisPrivate } from '../../../../api/axios'
 import {
   AlertCircle,
   CheckCircle,
@@ -9,6 +11,7 @@ import {
   SlidersHorizontal,
   TrendingDown,
   TrendingUp,
+  HelpCircle,
 } from 'lucide-react'
 import {
   Bar,
@@ -74,6 +77,26 @@ function DashboardView({ dashboardData, isLoading, onRefresh, onNavigate }) {
   const categoryData = dashboardData?.charts?.categories || []
   const attentionRows = recentFlags.slice(0, 5)
 
+  const [unresolvedQueries, setUnresolvedQueries] = useState([])
+  const [unresolvedCount, setUnresolvedCount] = useState(0)
+
+  useEffect(() => {
+    let active = true
+    async function fetchUnresolved() {
+      try {
+        const { data } = await axisPrivate().get('/api/questions?status=unanswered&limit=5')
+        if (active && data) {
+          setUnresolvedQueries(data.questions || [])
+          setUnresolvedCount(data.pagination?.total || 0)
+        }
+      } catch (err) {
+        console.error('Failed to fetch unresolved queries', err)
+      }
+    }
+    fetchUnresolved()
+    return () => { active = false }
+  }, [])
+
   return (
     <div className="flex-1 overflow-y-auto p-5 lg:p-8">
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -136,6 +159,66 @@ function DashboardView({ dashboardData, isLoading, onRefresh, onNavigate }) {
           onClick={onNavigate ? () => onNavigate('flagModeration') : undefined}
         />
       </div>
+
+      <section className="mb-8 overflow-hidden rounded-lg border border-border-light bg-bg-card shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-border-light px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-[17px] font-bold text-text-primary">Unresolved Queries</h2>
+            <p className="mt-1 text-[12px] text-text-muted">
+              Showing {unresolvedQueries.length} of {formatNumber(unresolvedCount)} open queries
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate?.('queriesManagement', { state: { status: 'unanswered' } })}
+            className="flex items-center gap-2 text-[12px] font-semibold text-brand transition hover:text-brand-hover"
+          >
+            <HelpCircle className="h-4 w-4" strokeWidth={1.8} />
+            View all queries
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] border-collapse text-[13px]">
+            <thead>
+              <tr className="border-b border-border-light bg-bg-tertiary text-left text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                <th className="px-5 py-3">ID</th>
+                <th className="px-5 py-3">Title</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3">Author</th>
+              </tr>
+            </thead>
+            <tbody>
+              {unresolvedQueries.length === 0 ? (
+                <tr>
+                  <td className="px-5 py-6 text-center text-text-muted" colSpan={4}>
+                    No unresolved queries.
+                  </td>
+                </tr>
+              ) : (
+                unresolvedQueries.map((q) => (
+                  <tr key={q.question_id} className="border-b border-border-light last:border-b-0">
+                    <td className="px-5 py-4 font-bold text-text-primary">
+                      #{q.question_id?.slice(0, 8)}
+                    </td>
+                    <td className="max-w-[320px] truncate px-5 py-4 text-text-secondary font-medium">
+                      {q.title}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="rounded bg-orange-50 px-2 py-1 text-[10px] font-bold uppercase text-orange-700">
+                        {q.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-text-secondary">
+                      {q.author_name || 'User'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <div className="mb-8 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <section className="rounded-lg border border-border-light bg-bg-card p-5 shadow-sm">

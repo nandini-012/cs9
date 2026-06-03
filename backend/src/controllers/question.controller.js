@@ -239,6 +239,12 @@ export async function listQuestions(req, res, next) {
       filter.question_id = req.query.id
     }
 
+    if (req.query.hasExpertAnswer === 'true') {
+      filter.has_expert_answer = true
+    } else if (req.query.hasExpertAnswer === 'false') {
+      filter.has_expert_answer = false
+    }
+
     if (!isAdmin(req)) {
       // moderation_status is applied in buildQuestionBaseFilter; resolve the
       // soft-delete visibility against whatever status filter is in effect.
